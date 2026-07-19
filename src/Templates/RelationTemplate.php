@@ -1,6 +1,6 @@
-<?php
+﻿<?php
 
-namespace Alsultan\FilamentTranslationToolkit\Templates;
+namespace Dyahunter35\FilamentTranslationToolkit\Templates;
 
 class RelationTemplate extends BaseTranslationTemplate
 {

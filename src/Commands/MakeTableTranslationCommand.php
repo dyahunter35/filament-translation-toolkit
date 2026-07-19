@@ -1,6 +1,6 @@
-<?php
+﻿<?php
 
-namespace Alsultan\FilamentTranslationToolkit\Commands;
+namespace Dyahunter35\FilamentTranslationToolkit\Commands;
 
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\File;

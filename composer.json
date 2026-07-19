@@ -1,6 +1,6 @@
-{
+﻿{
     "name": "dyahunter35/filament-translation-toolkit",
-    "description": "A comprehensive translation toolkit for Filament v5 — automatic UI translation, AI-powered translation generation, and language file scaffolding.",
+    "description": "A comprehensive translation toolkit for Filament v5 â€” automatic UI translation, AI-powered translation generation, and language file scaffolding.",
     "keywords": [
         "dyahunter35",
         "laravel",
@@ -40,18 +40,18 @@
     },
     "autoload": {
         "psr-4": {
-            "Alsultan\\FilamentTranslationToolkit\\": "src/"
+            "Dyahunter35\\FilamentTranslationToolkit\\": "src/"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "Alsultan\\FilamentTranslationToolkit\\Tests\\": "tests/"
+            "Dyahunter35\\FilamentTranslationToolkit\\Tests\\": "tests/"
         }
     },
     "extra": {
         "laravel": {
             "providers": [
-                "Alsultan\\FilamentTranslationToolkit\\FilamentTranslationToolkitServiceProvider"
+                "Dyahunter35\\FilamentTranslationToolkit\\FilamentTranslationToolkitServiceProvider"
             ]
         }
     },

@@ -1,11 +1,11 @@
-<?php
+﻿<?php
 
-namespace Alsultan\FilamentTranslationToolkit;
+namespace Dyahunter35\FilamentTranslationToolkit;
 
-use Alsultan\FilamentTranslationToolkit\Commands\MakeTableTranslationAiCommand;
-use Alsultan\FilamentTranslationToolkit\Commands\MakeTableTranslationCommand;
-use Alsultan\FilamentTranslationToolkit\Services\TranslationResolver;
-use Alsultan\FilamentTranslationToolkit\Services\TranslationScanner;
+use Dyahunter35\FilamentTranslationToolkit\Commands\MakeTableTranslationAiCommand;
+use Dyahunter35\FilamentTranslationToolkit\Commands\MakeTableTranslationCommand;
+use Dyahunter35\FilamentTranslationToolkit\Services\TranslationResolver;
+use Dyahunter35\FilamentTranslationToolkit\Services\TranslationScanner;
 use Filament\Forms\Components\Field;
 use Filament\Infolists\Components\Entry;
 use Filament\Schemas\Components\Component;

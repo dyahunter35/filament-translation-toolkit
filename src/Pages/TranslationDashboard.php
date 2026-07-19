@@ -1,9 +1,9 @@
-<?php
+﻿<?php
 
-namespace Alsultan\FilamentTranslationToolkit\Pages;
+namespace Dyahunter35\FilamentTranslationToolkit\Pages;
 
-use Alsultan\FilamentTranslationToolkit\Services\AiTranslationService;
-use Alsultan\FilamentTranslationToolkit\Services\TranslationScanner;
+use Dyahunter35\FilamentTranslationToolkit\Services\AiTranslationService;
+use Dyahunter35\FilamentTranslationToolkit\Services\TranslationScanner;
 use Filament\Actions\Action;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;

@@ -1,6 +1,6 @@
-# Filament Translation Toolkit
+﻿# Filament Translation Toolkit
 
-A comprehensive, production-ready translation toolkit for **Filament v5** — automatic UI translation, AI-powered translation generation, language file scaffolding, and a full dashboard to monitor translation health across your entire application.
+A comprehensive, production-ready translation toolkit for **Filament v5** â€” automatic UI translation, AI-powered translation generation, language file scaffolding, and a full dashboard to monitor translation health across your entire application.
 
 ---
 
@@ -29,7 +29,7 @@ A comprehensive, production-ready translation toolkit for **Filament v5** — au
 
 | Feature | Description |
 |---|---|
-| **Zero-Boilerplate Translation** | Just `use HasResource;` — global auto-registration handles everything |
+| **Zero-Boilerplate Translation** | Just `use HasResource;` â€” global auto-registration handles everything |
 | **Automatic UI Translation** | Auto-translate Filament forms, tables, infolists, navigation, and breadcrumbs at runtime |
 | **Translation Dashboard** | A full Filament page to monitor API status, missing files, completeness, and relationships |
 | **AI-Powered Generation** | Generate smart translation files using OpenRouter API (GPT-4o-mini by default) |
@@ -39,8 +39,8 @@ A comprehensive, production-ready translation toolkit for **Filament v5** — au
 | **Per-Class Disable** | Set `$translationEnabled = false` on any class to skip translation |
 | **Global Toggle** | `enabled` config or `FILAMENT_TRANSLATION_ENABLED` env to disable everything |
 | **Multi-Page Support** | Dedicated traits for Resources, Resource Pages, Single Pages, Relation Managers, and Pages |
-| **Multi-Language** | Configurable locale list — add any number of languages |
-| **Extensible Templates** | Strategy pattern for translation templates — create your own template types |
+| **Multi-Language** | Configurable locale list â€” add any number of languages |
+| **Extensible Templates** | Strategy pattern for translation templates â€” create your own template types |
 
 ---
 
@@ -97,7 +97,7 @@ To add the Translation Dashboard to your Filament panel:
 ```php
 // app/Providers/Filament/AdminPanelProvider.php
 
-use Alsultan\FilamentTranslationToolkit\Pages\TranslationDashboard;
+use Dyahunter35\FilamentTranslationToolkit\Pages\TranslationDashboard;
 
 public function panel(Panel $panel): Panel
 {
@@ -124,7 +124,7 @@ The full config file with all options:
 
 return [
 
-    // Master switch — disable all translation globally
+    // Master switch â€” disable all translation globally
     'enabled' => env('FILAMENT_TRANSLATION_ENABLED', true),
 
     // Locales to generate translations for (first = base)
@@ -176,10 +176,10 @@ return [
 ### 1. Generate Translation Files for a Table
 
 ```bash
-# Basic — generates scaffolding from column names
+# Basic â€” generates scaffolding from column names
 php artisan make:table-translation companies
 
-# AI-powered — generates smart translations
+# AI-powered â€” generates smart translations
 php artisan make:ai-translation companies --type=resource
 
 # Relation manager
@@ -188,12 +188,12 @@ php artisan make:ai-translation documents --type=relation
 
 ### 2. Add the Trait to Your Resource
 
-That's it — **just add the trait**. Translation is auto-activated:
+That's it â€” **just add the trait**. Translation is auto-activated:
 
 ```php
 namespace App\Filament\Resources;
 
-use Alsultan\FilamentTranslationToolkit\Concerns\HasResource;
+use Dyahunter35\FilamentTranslationToolkit\Concerns\HasResource;
 use Filament\Resources\Resource;
 
 class CompanyResource extends Resource
@@ -208,7 +208,7 @@ class CompanyResource extends Resource
     public static function form(array $form): array
     {
         return $form->schema([
-            // ... your form fields — labels auto-translated!
+            // ... your form fields â€” labels auto-translated!
         ]);
     }
 }
@@ -219,7 +219,7 @@ class CompanyResource extends Resource
 ```php
 namespace App\Filament\Resources\CompanyResource\RelationManagers;
 
-use Alsultan\FilamentTranslationToolkit\Concerns\HasRelationManager;
+use Dyahunter35\FilamentTranslationToolkit\Concerns\HasRelationManager;
 use Filament\Resources\RelationManagers\RelationManager;
 
 class DocumentsRelationManager extends RelationManager
@@ -230,7 +230,7 @@ class DocumentsRelationManager extends RelationManager
 }
 ```
 
-That's it — your UI is now automatically translated!
+That's it â€” your UI is now automatically translated!
 
 ### 4. Disable Translation for a Specific Class
 
@@ -292,8 +292,8 @@ The `TranslationDashboard` is a comprehensive monitoring page with 5 sections:
 ### 2. Missing Translation Files
 - Scans all database tables
 - Shows which tables are missing translation files per locale
-- **Generate** button — creates basic scaffolding from column names
-- **AI Generate** button — uses AI to create smart translations (only shown if API is configured)
+- **Generate** button â€” creates basic scaffolding from column names
+- **AI Generate** button â€” uses AI to create smart translations (only shown if API is configured)
 
 ### 3. Translation Completeness
 - Compares the base locale against all other locales
@@ -408,12 +408,12 @@ php artisan make:ai-translation documents --type=relation
 
 ## Traits (Concerns)
 
-### `HasTranslateConfigure` — The Core Engine
+### `HasTranslateConfigure` â€” The Core Engine
 
 The central trait that powers all auto-translation. Provides:
 
 ```php
-// Auto-boot all translation callbacks (optional — global auto-registration handles this)
+// Auto-boot all translation callbacks (optional â€” global auto-registration handles this)
 static::bootTranslation();
 
 // Or call individually:
@@ -432,7 +432,7 @@ if (static::shouldTranslate()) { ... }
 
 | Mode | How | When to use |
 |---|---|---|
-| **Global Auto** (recommended) | Service provider registers `configureUsing` globally. Resolver auto-detects current context. | Default — just `use HasResource;` |
+| **Global Auto** (recommended) | Service provider registers `configureUsing` globally. Resolver auto-detects current context. | Default â€” just `use HasResource;` |
 | **Explicit Boot** | Call `static::bootTranslation()` in your class's `boot()` method. | If global mode doesn't work for your setup |
 
 **What it translates:**
@@ -480,7 +480,7 @@ class CompanyResource extends Resource
 }
 ```
 
-**Locale path** is derived from the model name: `App\Models\Company` → `company`
+**Locale path** is derived from the model name: `App\Models\Company` â†’ `company`
 
 You can override it:
 ```php
@@ -511,7 +511,7 @@ class ExpenseSettings extends Page
 }
 ```
 
-**Locale path** is derived from the class name: `ExpenseSettings` → `expense_settings`
+**Locale path** is derived from the class name: `ExpenseSettings` â†’ `expense_settings`
 
 ---
 
@@ -732,7 +732,7 @@ Generates files with `label`, `fields`, `filters`, and `actions` keys.
 ```php
 <?php
 
-namespace Alsultan\FilamentTranslationToolkit\Templates;
+namespace Dyahunter35\FilamentTranslationToolkit\Templates;
 
 class WidgetTemplate extends BaseTranslationTemplate
 {
@@ -777,7 +777,7 @@ php artisan make:ai-translation widgets --type=widget
 
 ## How It Works
 
-### Auto-Translation Flow (Global Mode — Recommended)
+### Auto-Translation Flow (Global Mode â€” Recommended)
 
 ```
 1. Service provider boots and registers global configureUsing callbacks
@@ -786,10 +786,10 @@ php artisan make:ai-translation widgets --type=widget
 3. TranslationResolver detects the current Livewire component
 4. Checks if it uses our traits (HasResource, etc.)
 5. Resolves the locale path (e.g., "company" from CompanyResource)
-6. Extracts the component label → converts to snake_case key
+6. Extracts the component label â†’ converts to snake_case key
 7. Looks up "fields.{key}.label" in translation files
-8. If found → replaces with translated version
-9. If not found → keeps original (no breakage)
+8. If found â†’ replaces with translated version
+9. If not found â†’ keeps original (no breakage)
 10. Per-class $translationEnabled = false skips the class
 11. Global 'enabled' config disables everything
 ```
@@ -806,11 +806,11 @@ php artisan make:ai-translation widgets --type=widget
 
 | Class Type | Path Derivation | Example |
 |---|---|---|
-| Resource | `Model` class basename → snake | `CompanyResource` → `company` |
-| Single Page | Class basename → snake | `ExpensePage` → `expense_page` |
-| Relation Manager | `$relationship` → snake + `_relation` | `documents` → `document_relation` |
-| Resource Page | Delegates to parent Resource | `EditCompany` → `company` |
-| Page | Delegates to `$resource` model | `CompanyReport` → `company` |
+| Resource | `Model` class basename â†’ snake | `CompanyResource` â†’ `company` |
+| Single Page | Class basename â†’ snake | `ExpensePage` â†’ `expense_page` |
+| Relation Manager | `$relationship` â†’ snake + `_relation` | `documents` â†’ `document_relation` |
+| Resource Page | Delegates to parent Resource | `EditCompany` â†’ `company` |
+| Page | Delegates to `$resource` model | `CompanyReport` â†’ `company` |
 
 ---
 
@@ -834,7 +834,7 @@ Published views will be at `resources/views/vendor/filament-translation-toolkit/
 ## Testing
 
 ```bash
-cd packages/alsultan/filament-translation-toolkit
+cd packages/Dyahunter35/filament-translation-toolkit
 composer install
 composer test
 ```
@@ -844,38 +844,38 @@ composer test
 ## Package Structure
 
 ```
-packages/alsultan/filament-translation-toolkit/
-├── composer.json
-├── config/
-│   └── filament-translation-toolkit.php
-├── resources/
-│   ├── lang/
-│   │   ├── en/dashboard.php
-│   │   └── ar/dashboard.php
-│   └── views/
-│       └── pages/
-│           └── translation-dashboard.blade.php
-└── src/
-    ├── FilamentTranslationToolkitServiceProvider.php
-    ├── Commands/
-    │   ├── MakeTableTranslationCommand.php
-    │   └── MakeTableTranslationAiCommand.php
-    ├── Concerns/
-    │   ├── HasTranslateConfigure.php
-    │   ├── HasResource.php
-    │   ├── HasSinglePage.php
-    │   ├── HasResourcePage.php
-    │   ├── HasPage.php
-    │   └── HasRelationManager.php
-    ├── Pages/
-    │   └── TranslationDashboard.php
-    ├── Services/
-    │   ├── AiTranslationService.php
-    │   └── TranslationScanner.php
-    └── Templates/
-        ├── BaseTranslationTemplate.php
-        ├── ResourceTemplate.php
-        └── RelationTemplate.php
+packages/Dyahunter35/filament-translation-toolkit/
+â”œâ”€â”€ composer.json
+â”œâ”€â”€ config/
+â”‚   â””â”€â”€ filament-translation-toolkit.php
+â”œâ”€â”€ resources/
+â”‚   â”œâ”€â”€ lang/
+â”‚   â”‚   â”œâ”€â”€ en/dashboard.php
+â”‚   â”‚   â””â”€â”€ ar/dashboard.php
+â”‚   â””â”€â”€ views/
+â”‚       â””â”€â”€ pages/
+â”‚           â””â”€â”€ translation-dashboard.blade.php
+â””â”€â”€ src/
+    â”œâ”€â”€ FilamentTranslationToolkitServiceProvider.php
+    â”œâ”€â”€ Commands/
+    â”‚   â”œâ”€â”€ MakeTableTranslationCommand.php
+    â”‚   â””â”€â”€ MakeTableTranslationAiCommand.php
+    â”œâ”€â”€ Concerns/
+    â”‚   â”œâ”€â”€ HasTranslateConfigure.php
+    â”‚   â”œâ”€â”€ HasResource.php
+    â”‚   â”œâ”€â”€ HasSinglePage.php
+    â”‚   â”œâ”€â”€ HasResourcePage.php
+    â”‚   â”œâ”€â”€ HasPage.php
+    â”‚   â””â”€â”€ HasRelationManager.php
+    â”œâ”€â”€ Pages/
+    â”‚   â””â”€â”€ TranslationDashboard.php
+    â”œâ”€â”€ Services/
+    â”‚   â”œâ”€â”€ AiTranslationService.php
+    â”‚   â””â”€â”€ TranslationScanner.php
+    â””â”€â”€ Templates/
+        â”œâ”€â”€ BaseTranslationTemplate.php
+        â”œâ”€â”€ ResourceTemplate.php
+        â””â”€â”€ RelationTemplate.php
 ```
 
 ---
@@ -894,7 +894,7 @@ Please see [CONTRIBUTING](CONTRIBUTING.md) for details.
 
 ## Security Vulnerabilities
 
-If you discover a security vulnerability within the package, please send an email to Alsultan via [admin@alsultan.dev](mailto:admin@alsultan.dev). All security vulnerabilities will be promptly addressed.
+If you discover a security vulnerability within the package, please send an email to Dyahunter35 via [admin@Dyahunter35.dev](mailto:admin@Dyahunter35.dev). All security vulnerabilities will be promptly addressed.
 
 ---
 

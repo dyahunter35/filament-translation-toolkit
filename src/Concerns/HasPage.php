@@ -1,6 +1,6 @@
-<?php
+﻿<?php
 
-namespace Alsultan\FilamentTranslationToolkit\Concerns;
+namespace Dyahunter35\FilamentTranslationToolkit\Concerns;
 
 use Illuminate\Support\Str;
 

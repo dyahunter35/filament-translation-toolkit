@@ -1,8 +1,8 @@
-<?php
+﻿<?php
 
-namespace Alsultan\FilamentTranslationToolkit\Concerns;
+namespace Dyahunter35\FilamentTranslationToolkit\Concerns;
 
-use Alsultan\FilamentTranslationToolkit\Services\TranslationResolver;
+use Dyahunter35\FilamentTranslationToolkit\Services\TranslationResolver;
 use Filament\Forms;
 use Filament\Forms\Components\Field;
 use Filament\Forms\Components\Repeater;
@@ -26,7 +26,7 @@ trait HasTranslateConfigure
     public static bool $translationEnabled = true;
 
     /**
-     * Boot translation — call this once in your class's boot() method.
+     * Boot translation â€” call this once in your class's boot() method.
      * Registers all configureUsing callbacks for form, table, and infolist.
      */
     public static function bootTranslation(): void

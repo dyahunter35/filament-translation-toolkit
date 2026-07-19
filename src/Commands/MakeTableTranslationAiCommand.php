@@ -1,9 +1,9 @@
-<?php
+﻿<?php
 
-namespace Alsultan\FilamentTranslationToolkit\Commands;
+namespace Dyahunter35\FilamentTranslationToolkit\Commands;
 
-use Alsultan\FilamentTranslationToolkit\Services\AiTranslationService;
-use Alsultan\FilamentTranslationToolkit\Templates\BaseTranslationTemplate;
+use Dyahunter35\FilamentTranslationToolkit\Services\AiTranslationService;
+use Dyahunter35\FilamentTranslationToolkit\Templates\BaseTranslationTemplate;
 use Illuminate\Console\Command;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Support\Facades\File;
@@ -24,7 +24,7 @@ class MakeTableTranslationAiCommand extends Command
         $type = $this->option('type');
         $targetLangs = config('filament-translation-toolkit.locales', ['en', 'ar']);
 
-        $templateClass = '\\Alsultan\\FilamentTranslationToolkit\\Templates\\'.Str::studly($type).'Template';
+        $templateClass = '\\Dyahunter35\\FilamentTranslationToolkit\\Templates\\'.Str::studly($type).'Template';
 
         if (! class_exists($templateClass)) {
             $this->error("Template type [{$type}] does not exist! Expected: {$templateClass}");

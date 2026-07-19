@@ -1,6 +1,6 @@
-<?php
+﻿<?php
 
-namespace Alsultan\FilamentTranslationToolkit\Services;
+namespace Dyahunter35\FilamentTranslationToolkit\Services;
 
 use Illuminate\Support\Facades\Http;
 use Exception;
