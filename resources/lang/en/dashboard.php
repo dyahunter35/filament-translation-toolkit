@@ -2,6 +2,12 @@
 
 return [
 
+    'navigation' => [
+        'label' => 'Translation Dashboard',
+        'group' => 'Toolkit',
+        'title' => 'Translation Dashboard',
+    ],
+
     'sections' => [
         'api_status' => 'AI Translation Service',
         'missing_tables' => 'Missing Translation Files',

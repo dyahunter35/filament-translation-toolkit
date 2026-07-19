@@ -145,4 +145,45 @@ return [
         'Permission',
         'Role',
     ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Navigation Settings
+    |--------------------------------------------------------------------------
+    |
+    | Customize the navigation appearance of the Translation Dashboard
+    | in the Filament sidebar. These values can be translated using
+    | the __() helper by referencing the dashboard navigation lang keys.
+    |
+    */
+
+    'navigation' => [
+        /*
+         * The navigation label shown in the sidebar.
+         * Set to null to use the translated value from lang files.
+         */
+        'label' => env('TRANSLATION_DASHBOARD_LABEL', null),
+
+        /*
+         * The navigation group name in the sidebar.
+         * Set to null to use the translated value from lang files.
+         */
+        'group' => env('TRANSLATION_DASHBOARD_GROUP', null),
+
+        /*
+         * The page title shown at the top of the dashboard.
+         * Set to null to use the translated value from lang files.
+         */
+        'title' => env('TRANSLATION_DASHBOARD_TITLE', null),
+
+        /*
+         * The navigation icon (Heroicon name).
+         */
+        'icon' => env('TRANSLATION_DASHBOARD_ICON', 'heroicon-o-language'),
+
+        /*
+         * The sort order in the sidebar navigation.
+         */
+        'sort' => (int) env('TRANSLATION_DASHBOARD_SORT', 999),
+    ],
 ];

@@ -125,6 +125,33 @@ public function panel(Panel $panel): Panel
 }
 ```
 
+#### Customizing Dashboard Navigation
+
+You can customize the dashboard's navigation label, group, title, icon, and sort order from the config file or via environment variables:
+
+```php
+// config/filament-translation-toolkit.php
+'navigation' => [
+    'label' => 'My Dashboard',           // null = use __() translations
+    'group' => 'Admin Tools',            // null = use __() translations
+    'title' => 'Translation Overview',   // null = use __() translations
+    'icon'  => 'heroicon-o-cog-6-tooth',
+    'sort'  => 100,
+],
+```
+
+Or via `.env`:
+
+```env
+TRANSLATION_DASHBOARD_LABEL="My Dashboard"
+TRANSLATION_DASHBOARD_GROUP="Admin Tools"
+TRANSLATION_DASHBOARD_TITLE="Translation Overview"
+TRANSLATION_DASHBOARD_ICON="heroicon-o-cog-6-tooth"
+TRANSLATION_DASHBOARD_SORT=100
+```
+
+When set to `null` (default), the label, group, and title are automatically translated based on the active locale (English: "Translation Dashboard", Arabic: "لوحة التحكم بالترجمة").
+
 ### Step 7: Use Traits in Your Filament Classes
 
 Start using the translation traits in your existing classes (see [Traits](#traits-concerns) below).
@@ -140,7 +167,7 @@ The full config file with all options:
 
 return [
 
-    // Master switch â€” disable all translation globally
+    // Master switch — disable all translation globally
     'enabled' => env('FILAMENT_TRANSLATION_ENABLED', true),
 
     // Locales to generate translations for (first = base)
@@ -182,8 +209,43 @@ return [
         ],
     ],
 
+    // Models to exclude from the translation scanner
+    'excluded_models' => [
+        'Job',
+        'Migration',
+        'PasswordResetToken',
+        'CacheLock',
+        'FailedJob',
+        'JobBatch',
+        'Permission',
+        'Role',
+    ],
+
+    // Dashboard navigation settings
+    // Set any value to null to use translated labels from lang files
+    'navigation' => [
+        'label' => env('TRANSLATION_DASHBOARD_LABEL', null),
+        'group' => env('TRANSLATION_DASHBOARD_GROUP', null),
+        'title' => env('TRANSLATION_DASHBOARD_TITLE', null),
+        'icon'  => env('TRANSLATION_DASHBOARD_ICON', 'heroicon-o-language'),
+        'sort'  => (int) env('TRANSLATION_DASHBOARD_SORT', 999),
+    ],
+
 ];
 ```
+
+### Environment Variables
+
+| Variable | Default | Description |
+|---|---|---|
+| `FILAMENT_TRANSLATION_ENABLED` | `true` | Master switch to enable/disable translation |
+| `OPENROUTER_API_KEY` | `''` | OpenRouter API key for AI translations |
+| `OPENROUTER_MODEL` | `openai/gpt-4o-mini` | AI model to use for translations |
+| `TRANSLATION_DASHBOARD_LABEL` | `null` | Custom label for dashboard nav (null = translated) |
+| `TRANSLATION_DASHBOARD_GROUP` | `null` | Custom group name for dashboard nav (null = translated) |
+| `TRANSLATION_DASHBOARD_TITLE` | `null` | Custom page title for dashboard (null = translated) |
+| `TRANSLATION_DASHBOARD_ICON` | `heroicon-o-language` | Custom icon for dashboard nav |
+| `TRANSLATION_DASHBOARD_SORT` | `999` | Sort order for dashboard in sidebar |
 
 ---
 
@@ -308,8 +370,9 @@ The `TranslationDashboard` is a comprehensive monitoring page with 5 sections:
 ### 2. Missing Translation Files
 - Scans all database tables
 - Shows which tables are missing translation files per locale
-- **Generate** button â€” creates basic scaffolding from column names
-- **AI Generate** button â€” uses AI to create smart translations (only shown if API is configured)
+- **Generate** button — creates basic scaffolding from column names
+- **AI Generate** button — uses AI to create smart translations (only shown if API is configured)
+- **Loading indicators**: Each button shows a spinner during processing and becomes disabled to prevent double-clicks. A global banner appears at the top of the dashboard while any action is running.
 
 ### 3. Translation Completeness
 - Compares the base locale against all other locales

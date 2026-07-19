@@ -14,17 +14,45 @@ use Illuminate\Support\Str;
 
 class TranslationDashboard extends Page
 {
-    protected static \BackedEnum|string|null $navigationIcon = 'heroicon-o-language';
+    protected static \BackedEnum|string|null $navigationIcon = null;
 
-    protected static ?string $navigationLabel = 'Translation Dashboard';
+    protected static ?string $navigationLabel = null;
 
-    protected static \UnitEnum|string|null $navigationGroup = 'Toolkit';
+    protected static \UnitEnum|string|null $navigationGroup = null;
 
-    protected static ?int $navigationSort = 999;
+    protected static ?int $navigationSort = null;
 
-    protected static ?string $title = 'Translation Dashboard';
+    protected static ?string $title = null;
 
     protected string $view = 'filament-translation-toolkit::pages.translation-dashboard';
+
+    public static function getNavigationIcon(): ?string
+    {
+        return config('filament-translation-toolkit.navigation.icon', 'heroicon-o-language');
+    }
+
+    public static function getNavigationLabel(): string
+    {
+        return config('filament-translation-toolkit.navigation.label')
+            ?? __("filament-translation-toolkit::dashboard.navigation.label");
+    }
+
+    public static function getNavigationGroup(): ?string
+    {
+        return config('filament-translation-toolkit.navigation.group')
+            ?? __("filament-translation-toolkit::dashboard.navigation.group");
+    }
+
+    public static function getNavigationSort(): ?int
+    {
+        return config('filament-translation-toolkit.navigation.sort', 999);
+    }
+
+    public static function getTitle(): string
+    {
+        return config('filament-translation-toolkit.navigation.title')
+            ?? __("filament-translation-toolkit::dashboard.navigation.title");
+    }
 
     public ?array $aiStatus = null;
 
