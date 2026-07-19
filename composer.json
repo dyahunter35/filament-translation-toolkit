@@ -1,0 +1,66 @@
+{
+    "name": "alsultan/filament-translation-toolkit",
+    "description": "A comprehensive translation toolkit for Filament v5 — automatic UI translation, AI-powered translation generation, and language file scaffolding.",
+    "keywords": [
+        "alsultan",
+        "laravel",
+        "filamentphp",
+        "filament",
+        "filament-plugin",
+        "translation",
+        "localization",
+        "i18n",
+        "ai-translation"
+    ],
+    "homepage": "https://github.com/alsultan/filament-translation-toolkit",
+    "support": {
+        "issues": "https://github.com/alsultan/filament-translation-toolkit/issues",
+        "source": "https://github.com/alsultan/filament-translation-toolkit"
+    },
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Alsultan",
+            "email": "admin@alsultan.dev",
+            "role": "Developer"
+        }
+    ],
+    "require": {
+        "php": "^8.2",
+        "filament/filament": "^5.0",
+        "illuminate/support": "^13.0",
+        "spatie/laravel-package-tools": "^1.15.0"
+    },
+    "require-dev": {
+        "laravel/pint": "^1.0",
+        "nunomaduro/collision": "^8.0",
+        "orchestra/testbench": "^9.0|^10.0|^11.0",
+        "pestphp/pest": "^3.7|^4.0",
+        "phpstan/phpstan": "^2.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "Alsultan\\FilamentTranslationToolkit\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Alsultan\\FilamentTranslationToolkit\\Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Alsultan\\FilamentTranslationToolkit\\FilamentTranslationToolkitServiceProvider"
+            ]
+        }
+    },
+    "config": {
+        "sort-packages": true,
+        "allow-plugins": {
+            "pestphp/pest-plugin": true
+        }
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true
+}
