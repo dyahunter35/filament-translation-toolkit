@@ -48,11 +48,8 @@ class AiTranslationService
 
         Data to translate: ".json_encode($schemaData);
 
-        $response = Http::withToken($this->apiKey)
-            ->withOptions([
-                'proxy' => false,
-                'verify' => false,
-            ])
+        $response = Http::withoutVerifying()
+            ->withToken($this->apiKey)
             ->timeout($this->timeout)
             ->post($this->endpoint, [
                 'model' => $this->model,

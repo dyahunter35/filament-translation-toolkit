@@ -125,4 +125,24 @@ return [
         ],
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Excluded Models
+    |--------------------------------------------------------------------------
+    |
+    | The list of models that will be excluded from the translation scanner.
+    | This is used by the AI translation command to extract model relationships via reflection.
+    |
+    */
+
+    'excluded_models' => [
+        'Job',
+        'Migration',
+        'PasswordResetToken',
+        'CacheLock',
+        'FailedJob',
+        'JobBatch',
+        'Permission',
+        'Role',
+    ],
 ];

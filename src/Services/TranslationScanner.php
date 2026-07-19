@@ -3,9 +3,11 @@
 namespace Dyahunter35\FilamentTranslationToolkit\Services;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Support\Facades\File;
-use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
+use ReflectionClass;
+use ReflectionMethod;
 
 class TranslationScanner
 {
@@ -20,11 +22,6 @@ class TranslationScanner
         $this->modelNamespace = config('filament-translation-toolkit.model_namespace', 'App\\Models');
     }
 
-    /**
-     * Get all Eloquent model table names.
-     *
-     * @return array<int, array{table: string, model: string, class: string}>
-     */
     public function getModelTables(): array
     {
         $models = $this->discoverModels();
@@ -39,8 +36,7 @@ class TranslationScanner
                     'model' => class_basename($modelClass),
                     'class' => $modelClass,
                 ];
-            } catch (\Exception $e) {
-                // Try to guess table name from model name
+            } catch (\Throwable $e) {
                 $modelName = class_basename($modelClass);
                 $guessedTable = Str::plural(Str::snake($modelName));
                 $results[] = [
@@ -50,92 +46,62 @@ class TranslationScanner
                 ];
             }
         }
-
         return $results;
     }
 
-    /**
-     * Find tables that are missing translation files in all locales.
-     * Only includes tables that have a corresponding Eloquent model.
-     * Falls back to all tables if no models are found.
-     *
-     * @return array<int, array{table: string, model: string, suggested_file: string, exists_in: array<int, string>, missing_in: array<int, string>}>
-     */
     public function getMissingTableTranslations(): array
     {
         $modelTables = $this->getModelTables();
-
-        // Fallback: if no models found, use all database tables
-        if (empty($modelTables)) {
-            $allTables = array_column(Schema::getTables(), 'name');
-            $modelTables = array_map(fn ($table) => [
-                'table' => $table,
-                'model' => Str::studly(Str::singular($table)),
-                'class' => '',
-            ], $allTables);
-        }
-
         $missing = [];
 
         foreach ($modelTables as $item) {
             $table = $item['table'];
-            $fileName = Str::of(Str::singular($table))->snake()->toString();
+            $singularName = Str::singular($table);
+            $pluralName = $table;
+
             $existsIn = [];
             $missingIn = [];
 
             foreach ($this->locales as $locale) {
                 $files = $this->getTranslationFiles($locale);
-                if (in_array($fileName, $files)) {
+                // التحقق من وجود الملف باسم المفرد أو الجمع
+                if (in_array($singularName, $files) || in_array($pluralName, $files)) {
                     $existsIn[] = $locale;
                 } else {
                     $missingIn[] = $locale;
                 }
             }
 
-            if (! empty($missingIn)) {
+            if (!empty($missingIn)) {
                 $missing[] = [
                     'table' => $table,
                     'model' => $item['model'],
-                    'suggested_file' => $fileName,
+                    'suggested_file' => $singularName,
                     'exists_in' => $existsIn,
                     'missing_in' => $missingIn,
                 ];
             }
         }
-
         return $missing;
     }
 
-    /**
-     * Get all translation file names (without extension) for a given locale.
-     *
-     * @return array<int, string>
-     */
     public function getTranslationFiles(string $locale): array
     {
         $path = "{$this->langPath}/{$locale}";
-
-        if (! File::isDirectory($path)) {
+        if (!File::isDirectory($path))
             return [];
-        }
 
         return collect(File::files($path))
-            ->filter(fn ($file) => $file->getExtension() === 'php')
-            ->map(fn ($file) => $file->getFilenameWithoutExtension())
+            ->filter(fn($file) => $file->getExtension() === 'php')
+            ->map(fn($file) => $file->getFilenameWithoutExtension())
             ->values()
             ->toArray();
     }
 
-    /**
-     * Get translation completeness between the base locale and other locales.
-     *
-     * @return array<string, array{base_locale: string, base_keys: int, target_locale: string, target_keys: int, completeness: float, missing_keys: array<int, string>}>
-     */
     public function getTranslationCompleteness(): array
     {
         $baseLocale = $this->locales[0] ?? 'en';
         $results = [];
-
         $baseFiles = $this->getTranslationFiles($baseLocale);
 
         foreach ($baseFiles as $fileName) {
@@ -151,7 +117,7 @@ class TranslationScanner
                 $targetCount = count($targetKeys);
                 $completeness = $baseCount > 0 ? round(($targetCount / $baseCount) * 100, 1) : 100;
 
-                $results[$fileName.'/'.$targetLocale] = [
+                $results[$fileName . '/' . $targetLocale] = [
                     'base_locale' => $baseLocale,
                     'base_keys' => $baseCount,
                     'target_locale' => $targetLocale,
@@ -161,15 +127,9 @@ class TranslationScanner
                 ];
             }
         }
-
         return $results;
     }
 
-    /**
-     * Find all Eloquent models and their relationships.
-     *
-     * @return array<int, array{model: string, class: string, relationships: array<int, string>, has_translation: bool, translation_file: string|null}>
-     */
     public function getModelRelationships(): array
     {
         $models = $this->discoverModels();
@@ -178,7 +138,7 @@ class TranslationScanner
         foreach ($models as $modelClass) {
             $modelName = class_basename($modelClass);
             $relationships = $this->extractRelationships($modelClass);
-            $fileName = Str::of($modelName)->snake()->toString().'_relation';
+            $fileName = Str::of($modelName)->snake()->toString() . '_relation';
 
             $hasTranslation = false;
             $translationFile = null;
@@ -200,24 +160,15 @@ class TranslationScanner
                 'translation_file' => $translationFile,
             ];
         }
-
         return $results;
     }
 
-    /**
-     * Get AI service status.
-     *
-     * @return array{configured: bool, api_key_preview: string, model: string, endpoint: string}
-     */
     public function getAiStatus(): array
     {
         $config = config('filament-translation-toolkit.ai', []);
         $apiKey = $config['api_key'] ?? '';
-        $configured = ! empty($apiKey);
-
-        $preview = $configured
-            ? substr($apiKey, 0, 8).'...'.substr($apiKey, -4)
-            : '';
+        $configured = !empty($apiKey);
+        $preview = $configured ? substr($apiKey, 0, 8) . '...' . substr($apiKey, -4) : '';
 
         return [
             'configured' => $configured,
@@ -227,148 +178,109 @@ class TranslationScanner
         ];
     }
 
-    /**
-     * Get a summary of all translation files with their key counts.
-     *
-     * @return array<int, array{file: string, locales: array<string, int>}>
-     */
     public function getFileSummary(): array
     {
         $summary = [];
-        $allFiles = [];
+        $models = $this->discoverModels();
+        $validFileNames = collect($models)->map(fn($m) => Str::snake(class_basename($m)))->toArray();
 
+        $allFiles = [];
         foreach ($this->locales as $locale) {
-            $files = $this->getTranslationFiles($locale);
-            $allFiles = array_merge($allFiles, $files);
+            $allFiles = array_merge($allFiles, $this->getTranslationFiles($locale));
         }
 
-        $allFiles = array_unique($allFiles);
-        sort($allFiles);
+        foreach (array_unique($allFiles) as $fileName) {
+            if (!in_array($fileName, $validFileNames))
+                continue;
 
-        foreach ($allFiles as $fileName) {
             $locales = [];
             foreach ($this->locales as $locale) {
                 $translation = $this->loadTranslationFile($locale, $fileName);
                 $locales[$locale] = count($this->flattenTranslationKeys($translation));
             }
-
-            $summary[] = [
-                'file' => $fileName,
-                'locales' => $locales,
-            ];
+            $summary[] = ['file' => $fileName, 'locales' => $locales];
         }
-
         return $summary;
     }
 
-    /**
-     * Discover all Eloquent models in the configured namespace.
-     *
-     * @return array<int, class-string<Model>>
-     */
     protected function discoverModels(): array
     {
-        $namespacePath = str_replace('\\', '/', $this->modelNamespace);
-        $modelsPath = app_path($namespacePath);
+        // قائمة النماذج المستبعدة
+        $excludedModels = config('filament-translation-toolkit.excluded_models', ['Job', 'Migration', 'PasswordResetToken', 'CacheLock', 'FailedJob', 'JobBatch', 'Permission', 'Role']);
+        //$modelsPath = base_path(str_replace('\\', '\\', $this->modelNamespace));
 
-        if (! File::isDirectory($modelsPath)) {
+        // 1. احصل على المسار الأساسي من الإعدادات
+        $namespace = $this->modelNamespace; // مثلاً 'App\Models'
+
+        // 2. إذا كان يبدأ بـ 'App', قم بتحويله إلى 'app' ليتوافق مع نظام ملفات Laravel
+        if (Str::startsWith($namespace, 'App')) {
+            $path = app_path(Str::after($namespace, 'App\\'));
+        } else {
+            // إذا كان Namespace مخصصاً خارج مجلد app
+            $path = base_path(str_replace('\\', '/', $namespace));
+        }
+
+        if (!File::isDirectory($path)) {
             return [];
         }
 
         $models = [];
+        foreach (File::allFiles($path) as $file) {
+            // ... بقية كود الاكتشاف
+            $className = $namespace . '\\' . Str::replaceLast('.php', '', $file->getRelativePathname());
+            $className = str_replace(['/', '\\'], '\\', $className);
 
-        foreach (File::allFiles($modelsPath) as $file) {
-            $relativePath = $file->getRelativePathname();
-            $className = $this->modelNamespace.'\\'.Str::replaceLast('.php', '', $relativePath);
 
-            $className = str_replace('/', '\\', $className);
 
-            if (is_subclass_of($className, Model::class) && ! (new \ReflectionClass($className))->isAbstract()) {
+            if (in_array(class_basename($className), $excludedModels))
+                continue;
+
+            if (class_exists($className) && is_subclass_of($className, Model::class) && !(new ReflectionClass($className))->isAbstract()) {
                 $models[] = $className;
             }
         }
-
         sort($models);
-
         return $models;
     }
 
-    /**
-     * Extract Eloquent relationship method names from a model.
-     *
-     * @return array<int, string>
-     */
     protected function extractRelationships(string $modelClass): array
     {
-        if (! class_exists($modelClass)) {
+        if (!class_exists($modelClass))
             return [];
-        }
-
+        $reflection = new ReflectionClass($modelClass);
+        $modelInstance = $reflection->newInstanceWithoutConstructor();
         $relationships = [];
-        $reflection = new \ReflectionClass($modelClass);
 
-        try {
-            $modelInstance = app($modelClass);
-        } catch (\Exception $e) {
-            return [];
-        }
-
-        foreach ($reflection->getMethods(\ReflectionMethod::IS_PUBLIC) as $method) {
-            if ($method->class !== $modelClass || $method->getNumberOfParameters() > 0) {
+        foreach ($reflection->getMethods(ReflectionMethod::IS_PUBLIC) as $method) {
+            if ($method->class !== $modelClass || $method->getNumberOfParameters() > 0)
                 continue;
-            }
-
             try {
                 $result = $method->invoke($modelInstance);
-                if ($result instanceof \Illuminate\Database\Eloquent\Relations\Relation) {
+                if ($result instanceof Relation)
                     $relationships[] = $method->getName();
-                }
-            } catch (\Exception $e) {
+            } catch (\Throwable $e) {
                 continue;
             }
         }
-
         return $relationships;
     }
 
-    /**
-     * Load a translation file and return its contents.
-     *
-     * @return array<string, mixed>
-     */
     protected function loadTranslationFile(string $locale, string $fileName): array
     {
         $path = "{$this->langPath}/{$locale}/{$fileName}.php";
-
-        if (! File::exists($path)) {
-            return [];
-        }
-
-        $translation = include $path;
-
-        return is_array($translation) ? $translation : [];
+        return (File::exists($path) && is_array($t = include $path)) ? $t : [];
     }
 
-    /**
-     * Flatten a nested translation array into dot-notation keys.
-     *
-     * @param  array<string, mixed>  $array
-     * @return array<int, string>
-     */
     protected function flattenTranslationKeys(array $array, string $prefix = ''): array
     {
         $keys = [];
-
         foreach ($array as $key => $value) {
             $fullKey = $prefix ? "{$prefix}.{$key}" : (string) $key;
-
-            if (is_array($value)) {
+            if (is_array($value))
                 $keys = array_merge($keys, $this->flattenTranslationKeys($value, $fullKey));
-            } else {
+            else
                 $keys[] = $fullKey;
-            }
         }
-
         return $keys;
     }
 }

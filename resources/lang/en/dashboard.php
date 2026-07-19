@@ -51,6 +51,7 @@ return [
         'no_models_found' => 'No Eloquent models found.',
         'check_model_namespace' => 'Check that model_namespace in config matches your project structure.',
         'no_translation_files' => 'No translation files found.',
+        'processing' => 'Processing, please wait...',
     ],
 
     'actions' => [

@@ -1,4 +1,21 @@
 <x-filament-panels::page>
+    {{-- Global loading banner --}}
+    <div
+        wire:loading
+        wire:target="generateTableTranslation, generateAiTableTranslation, generateMissingRelationTranslation, refreshData"
+        class="mb-6"
+    >
+        <div class="flex items-center gap-3 rounded-lg bg-primary-50 dark:bg-primary-950/50 border border-primary-200 dark:border-primary-800 p-4">
+            <svg class="h-5 w-5 animate-spin text-primary-600 dark:text-primary-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+            </svg>
+            <span class="text-sm font-medium text-primary-700 dark:text-primary-300">
+                {{ __('filament-translation-toolkit::dashboard.messages.processing') }}
+            </span>
+        </div>
+    </div>
+
     {{-- SECTION: API Status --}}
     <div class="mb-6">
         <x-filament::section>
@@ -120,18 +137,32 @@
                                             <button
                                                 type="button"
                                                 wire:click="generateTableTranslation('{{ $item['table'] }}')"
-                                                class="inline-flex items-center gap-1 rounded-lg bg-primary-600 px-2.5 py-1 text-xs font-semibold text-white shadow-sm hover:bg-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 transition"
+                                                wire:loading.attr="disabled"
+                                                wire:loading.class="opacity-50 cursor-not-allowed"
+                                                wire:loading.target="generateTableTranslation('{{ $item['table'] }}')"
+                                                class="inline-flex items-center gap-1 rounded-lg bg-primary-600 px-2.5 py-1 text-xs font-semibold text-white shadow-sm hover:bg-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 transition disabled:opacity-50 disabled:cursor-not-allowed"
                                             >
-                                                <x-heroicon-o-document-text class="h-3 w-3" />
+                                                <svg wire:loading wire:loading.target="generateTableTranslation('{{ $item['table'] }}')" class="h-3 w-3 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+                                                </svg>
+                                                <x-heroicon-o-document-text wire:loading.remove wire:loading.target="generateTableTranslation('{{ $item['table'] }}')" class="h-3 w-3" />
                                                 {{ __('filament-translation-toolkit::dashboard.actions.generate') }}
                                             </button>
                                             @if($aiStatus && $aiStatus['configured'])
                                                 <button
                                                     type="button"
                                                     wire:click="generateAiTableTranslation('{{ $item['table'] }}')"
-                                                    class="inline-flex items-center gap-1 rounded-lg bg-warning-500 px-2.5 py-1 text-xs font-semibold text-white shadow-sm hover:bg-warning-600 focus:outline-none focus:ring-2 focus:ring-warning-500 focus:ring-offset-2 transition"
+                                                    wire:loading.attr="disabled"
+                                                    wire:loading.class="opacity-50 cursor-not-allowed"
+                                                    wire:loading.target="generateAiTableTranslation('{{ $item['table'] }}')"
+                                                    class="inline-flex items-center gap-1 rounded-lg bg-warning-500 px-2.5 py-1 text-xs font-semibold text-white shadow-sm hover:bg-warning-600 focus:outline-none focus:ring-2 focus:ring-warning-500 focus:ring-offset-2 transition disabled:opacity-50 disabled:cursor-not-allowed"
                                                 >
-                                                    <x-heroicon-o-sparkles class="h-3 w-3" />
+                                                    <svg wire:loading wire:loading.target="generateAiTableTranslation('{{ $item['table'] }}')" class="h-3 w-3 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+                                                    </svg>
+                                                    <x-heroicon-o-sparkles wire:loading.remove wire:loading.target="generateAiTableTranslation('{{ $item['table'] }}')" class="h-3 w-3" />
                                                     {{ __('filament-translation-toolkit::dashboard.actions.generate_ai') }}
                                                 </button>
                                             @endif
@@ -273,18 +304,25 @@
                                         @endif
                                     </td>
                                     <td class="px-4 py-3 text-right">
-                                        @if(!$item['has_translation'])
+                                            @if(!$item['has_translation'])
                                             <div class="flex items-center justify-end gap-1">
                                                 <button
                                                     type="button"
                                                     wire:click="generateMissingRelationTranslation('{{ class_basename($item['model']) }}')"
-                                                    class="inline-flex items-center gap-1 rounded-lg bg-info-600 px-2.5 py-1 text-xs font-semibold text-white shadow-sm hover:bg-info-500 focus:outline-none focus:ring-2 focus:ring-info-500 focus:ring-offset-2 transition"
+                                                    wire:loading.attr="disabled"
+                                                    wire:loading.class="opacity-50 cursor-not-allowed"
+                                                    wire:loading.target="generateMissingRelationTranslation('{{ class_basename($item['model']) }}')"
+                                                    class="inline-flex items-center gap-1 rounded-lg bg-info-600 px-2.5 py-1 text-xs font-semibold text-white shadow-sm hover:bg-info-500 focus:outline-none focus:ring-2 focus:ring-info-500 focus:ring-offset-2 transition disabled:opacity-50 disabled:cursor-not-allowed"
                                                 >
-                                                    <x-heroicon-o-link class="h-3 w-3" />
+                                                    <svg wire:loading wire:loading.target="generateMissingRelationTranslation('{{ class_basename($item['model']) }}')" class="h-3 w-3 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+                                                    </svg>
+                                                    <x-heroicon-o-link wire:loading.remove wire:loading.target="generateMissingRelationTranslation('{{ class_basename($item['model']) }}')" class="h-3 w-3" />
                                                     {{ __('filament-translation-toolkit::dashboard.actions.generate_relation') }}
                                                 </button>
                                             </div>
-                                        @endif
+                                            @endif
                                     </td>
                                 </tr>
                             @endforeach

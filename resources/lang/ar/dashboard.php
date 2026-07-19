@@ -51,6 +51,7 @@ return [
         'no_models_found' => 'لم يتم العثور على نماذج Eloquent.',
         'check_model_namespace' => 'تأكد من أن model_namespace في الإعدادات يتطابق مع هيكل مشروعك.',
         'no_translation_files' => 'لا توجد ملفات ترجمة.',
+        'processing' => 'جاري المعالجة، يرجى الانتظار...',
     ],
 
     'actions' => [
