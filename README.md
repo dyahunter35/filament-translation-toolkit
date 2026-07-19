@@ -61,7 +61,23 @@ A comprehensive, production-ready translation toolkit for **Filament v5** â€�
 composer require dyahunter35/filament-translation-toolkit
 ```
 
-### Step 2: Publish the Config
+### Step 2: Add Views Path to Your Theme (Required for Dashboard Styling)
+
+To ensure Tailwind CSS v4 compiles the classes used in the Translation Dashboard, add a `@source` directive in your main CSS file:
+
+```css
+/* resources/css/filament.css */
+@import 'tailwindcss';
+@source '../../../../vendor/dyahunter35/filament-translation-toolkit/resources/**/*.blade.php';
+```
+
+Then rebuild your assets:
+
+```bash
+npm run build
+```
+
+### Step 3: Publish the Config
 
 ```bash
 php artisan vendor:publish --tag=filament-translation-toolkit-config
@@ -69,7 +85,7 @@ php artisan vendor:publish --tag=filament-translation-toolkit-config
 
 This creates `config/filament-translation-toolkit.php` in your project.
 
-### Step 3: Configure Your Locales
+### Step 4: Configure Your Locales
 
 Open `config/filament-translation-toolkit.php`:
 
@@ -77,7 +93,7 @@ Open `config/filament-translation-toolkit.php`:
 'locales' => ['en', 'ar'],  // First locale = base language
 ```
 
-### Step 4: (Optional) Configure AI Translation
+### Step 5: (Optional) Configure AI Translation
 
 If you want AI-powered translation generation:
 
@@ -90,7 +106,7 @@ OPENROUTER_API_KEY=sk-or-v1-xxxxxxxxxxxx
 OPENROUTER_MODEL=openai/gpt-4o-mini
 ```
 
-### Step 5: Register the Dashboard (Optional)
+### Step 6: Register the Dashboard (Optional)
 
 To add the Translation Dashboard to your Filament panel:
 
@@ -109,7 +125,7 @@ public function panel(Panel $panel): Panel
 }
 ```
 
-### Step 6: Use Traits in Your Filament Classes
+### Step 7: Use Traits in Your Filament Classes
 
 Start using the translation traits in your existing classes (see [Traits](#traits-concerns) below).
 

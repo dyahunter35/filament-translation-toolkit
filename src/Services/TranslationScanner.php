@@ -21,13 +21,89 @@ class TranslationScanner
     }
 
     /**
-     * Get all database tables.
+     * Get all Eloquent model table names.
      *
-     * @return array<int, string>
+     * @return array<int, array{table: string, model: string, class: string}>
      */
-    public function getAllTables(): array
+    public function getModelTables(): array
     {
-        return array_column(Schema::getTables(), 'name');
+        $models = $this->discoverModels();
+        $results = [];
+
+        foreach ($models as $modelClass) {
+            try {
+                $instance = new $modelClass;
+                $tableName = $instance->getTable();
+                $results[] = [
+                    'table' => $tableName,
+                    'model' => class_basename($modelClass),
+                    'class' => $modelClass,
+                ];
+            } catch (\Exception $e) {
+                // Try to guess table name from model name
+                $modelName = class_basename($modelClass);
+                $guessedTable = Str::plural(Str::snake($modelName));
+                $results[] = [
+                    'table' => $guessedTable,
+                    'model' => $modelName,
+                    'class' => $modelClass,
+                ];
+            }
+        }
+
+        return $results;
+    }
+
+    /**
+     * Find tables that are missing translation files in all locales.
+     * Only includes tables that have a corresponding Eloquent model.
+     * Falls back to all tables if no models are found.
+     *
+     * @return array<int, array{table: string, model: string, suggested_file: string, exists_in: array<int, string>, missing_in: array<int, string>}>
+     */
+    public function getMissingTableTranslations(): array
+    {
+        $modelTables = $this->getModelTables();
+
+        // Fallback: if no models found, use all database tables
+        if (empty($modelTables)) {
+            $allTables = array_column(Schema::getTables(), 'name');
+            $modelTables = array_map(fn ($table) => [
+                'table' => $table,
+                'model' => Str::studly(Str::singular($table)),
+                'class' => '',
+            ], $allTables);
+        }
+
+        $missing = [];
+
+        foreach ($modelTables as $item) {
+            $table = $item['table'];
+            $fileName = Str::of(Str::singular($table))->snake()->toString();
+            $existsIn = [];
+            $missingIn = [];
+
+            foreach ($this->locales as $locale) {
+                $files = $this->getTranslationFiles($locale);
+                if (in_array($fileName, $files)) {
+                    $existsIn[] = $locale;
+                } else {
+                    $missingIn[] = $locale;
+                }
+            }
+
+            if (! empty($missingIn)) {
+                $missing[] = [
+                    'table' => $table,
+                    'model' => $item['model'],
+                    'suggested_file' => $fileName,
+                    'exists_in' => $existsIn,
+                    'missing_in' => $missingIn,
+                ];
+            }
+        }
+
+        return $missing;
     }
 
     /**
@@ -48,43 +124,6 @@ class TranslationScanner
             ->map(fn ($file) => $file->getFilenameWithoutExtension())
             ->values()
             ->toArray();
-    }
-
-    /**
-     * Find tables that are missing translation files in all locales.
-     *
-     * @return array<int, array{table: string, suggested_file: string, exists_in: array<int, string>, missing_in: array<int, string>}>
-     */
-    public function getMissingTableTranslations(): array
-    {
-        $tables = $this->getAllTables();
-        $missing = [];
-
-        foreach ($tables as $table) {
-            $fileName = Str::of(Str::singular($table))->snake()->toString();
-            $existsIn = [];
-            $missingIn = [];
-
-            foreach ($this->locales as $locale) {
-                $files = $this->getTranslationFiles($locale);
-                if (in_array($fileName, $files)) {
-                    $existsIn[] = $locale;
-                } else {
-                    $missingIn[] = $locale;
-                }
-            }
-
-            if (! empty($missingIn)) {
-                $missing[] = [
-                    'table' => $table,
-                    'suggested_file' => $fileName,
-                    'exists_in' => $existsIn,
-                    'missing_in' => $missingIn,
-                ];
-            }
-        }
-
-        return $missing;
     }
 
     /**
@@ -242,7 +281,6 @@ class TranslationScanner
             $relativePath = $file->getRelativePathname();
             $className = $this->modelNamespace.'\\'.Str::replaceLast('.php', '', $relativePath);
 
-            // Convert directory separators to namespace separators
             $className = str_replace('/', '\\', $className);
 
             if (is_subclass_of($className, Model::class) && ! (new \ReflectionClass($className))->isAbstract()) {

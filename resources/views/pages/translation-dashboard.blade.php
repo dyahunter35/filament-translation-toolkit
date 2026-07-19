@@ -1,7 +1,5 @@
 <x-filament-panels::page>
-    {{-- ============================================ --}}
-    {{-- SECTION: API Status                         --}}
-    {{-- ============================================ --}}
+    {{-- SECTION: API Status --}}
     <div class="mb-6">
         <x-filament::section>
             <x-slot name="heading">
@@ -12,18 +10,18 @@
             </x-slot>
 
             @if($aiStatus && $aiStatus['configured'])
-                <div class="flex items-center gap-3 rounded-lg bg-success-50 dark:bg-success-950/50 p-4">
+                <div class="flex items-center gap-3 rounded-lg bg-primary-50 dark:bg-primary-950/50 p-4">
                     <div class="flex-shrink-0">
                         <span class="relative flex h-3 w-3">
-                            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-success-400 opacity-75"></span>
-                            <span class="relative inline-flex rounded-full h-3 w-3 bg-success-500"></span>
+                            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary-400 opacity-75"></span>
+                            <span class="relative inline-flex rounded-full h-3 w-3 bg-primary-500"></span>
                         </span>
                     </div>
                     <div class="flex-1">
-                        <p class="text-sm font-medium text-success-700 dark:text-success-300">
+                        <p class="text-sm font-medium text-primary-700 dark:text-primary-300">
                             {{ __('filament-translation-toolkit::dashboard.api.configured') }}
                         </p>
-                        <p class="mt-1 text-xs text-success-600 dark:text-success-400">
+                        <p class="mt-1 text-xs text-primary-600 dark:text-primary-400">
                             {{ __('filament-translation-toolkit::dashboard.api.model') }}: {{ $aiStatus['model'] }}
                             &middot;
                             {{ __('filament-translation-toolkit::dashboard.api.key') }}: {{ $aiStatus['api_key_preview'] }}
@@ -31,16 +29,16 @@
                     </div>
                 </div>
             @else
-                <div class="rounded-lg bg-danger-50 dark:bg-danger-950/50 p-4">
+                <div class="rounded-lg bg-warning-50 dark:bg-warning-950/50 p-4">
                     <div class="flex items-start gap-3">
                         <div class="flex-shrink-0">
-                            <x-heroicon-o-exclamation-triangle class="h-5 w-5 text-danger-500" />
+                            <x-heroicon-o-exclamation-triangle class="h-5 w-5 text-warning-500" />
                         </div>
                         <div class="flex-1">
-                            <p class="text-sm font-medium text-danger-700 dark:text-danger-300">
+                            <p class="text-sm font-medium text-warning-700 dark:text-warning-300">
                                 {{ __('filament-translation-toolkit::dashboard.api.not_configured') }}
                             </p>
-                            <div class="mt-2 text-xs text-danger-600 dark:text-danger-400 space-y-2">
+                            <div class="mt-2 text-xs text-warning-600 dark:text-warning-400 space-y-2">
                                 <p>{{ __('filament-translation-toolkit::dashboard.api.steps_intro') }}</p>
                                 <ol class="list-decimal list-inside space-y-1 ml-2">
                                     <li>{{ __('filament-translation-toolkit::dashboard.api.step_1') }}</li>
@@ -48,10 +46,10 @@
                                     <li>{{ __('filament-translation-toolkit::dashboard.api.step_3') }}</li>
                                     <li>{{ __('filament-translation-toolkit::dashboard.api.step_4') }}</li>
                                 </ol>
-                                <div class="mt-3 p-3 rounded bg-danger-100 dark:bg-danger-900/50 font-mono text-xs">
-                                    <p class="text-danger-700 dark:text-danger-300"># .env</p>
-                                    <p class="text-danger-700 dark:text-danger-300">OPENROUTER_API_KEY=sk-or-v1-xxxxx</p>
-                                    <p class="text-danger-700 dark:text-danger-300">OPENROUTER_MODEL=openai/gpt-4o-mini</p>
+                                <div class="mt-3 p-3 rounded bg-warning-100 dark:bg-warning-900/50 font-mono text-xs">
+                                    <p class="text-warning-700 dark:text-warning-300"># .env</p>
+                                    <p class="text-warning-700 dark:text-warning-300">OPENROUTER_API_KEY=sk-or-v1-xxxxx</p>
+                                    <p class="text-warning-700 dark:text-warning-300">OPENROUTER_MODEL=openai/gpt-4o-mini</p>
                                 </div>
                                 <p class="mt-2">
                                     <a href="https://openrouter.ai/keys" target="_blank" class="underline font-medium">
@@ -66,9 +64,7 @@
         </x-filament::section>
     </div>
 
-    {{-- ============================================ --}}
-    {{-- SECTION: Missing Table Translations          --}}
-    {{-- ============================================ --}}
+    {{-- SECTION: Missing Table Translations --}}
     <div class="mb-6">
         <x-filament::section>
             <x-slot name="heading">
@@ -92,6 +88,7 @@
                     <table class="w-full text-sm text-left">
                         <thead class="text-xs uppercase bg-gray-50 dark:bg-gray-800">
                             <tr>
+                                <th class="px-4 py-3">{{ __('filament-translation-toolkit::dashboard.table.model') }}</th>
                                 <th class="px-4 py-3">{{ __('filament-translation-toolkit::dashboard.table.table') }}</th>
                                 <th class="px-4 py-3">{{ __('filament-translation-toolkit::dashboard.table.suggested_file') }}</th>
                                 <th class="px-4 py-3">{{ __('filament-translation-toolkit::dashboard.table.exists_in') }}</th>
@@ -102,12 +99,9 @@
                         <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
                             @foreach($missingTables as $item)
                                 <tr class="bg-white dark:bg-gray-900">
-                                    <td class="px-4 py-3 font-medium">
-                                        {{ $item['table'] }}
-                                    </td>
-                                    <td class="px-4 py-3 font-mono text-xs">
-                                        {{ $item['suggested_file'] }}.php
-                                    </td>
+                                    <td class="px-4 py-3 font-medium">{{ $item['model'] }}</td>
+                                    <td class="px-4 py-3 text-gray-500">{{ $item['table'] }}</td>
+                                    <td class="px-4 py-3 font-mono text-xs">{{ $item['suggested_file'] }}.php</td>
                                     <td class="px-4 py-3">
                                         @foreach($item['exists_in'] as $locale)
                                             <x-filament::badge color="success" size="sm">{{ $locale }}</x-filament::badge>
@@ -123,9 +117,23 @@
                                     </td>
                                     <td class="px-4 py-3 text-right">
                                         <div class="flex items-center justify-end gap-1">
-                                            {{ $this->generateTableTranslation($item['table']) }}
+                                            <button
+                                                type="button"
+                                                wire:click="generateTableTranslation('{{ $item['table'] }}')"
+                                                class="inline-flex items-center gap-1 rounded-lg bg-primary-600 px-2.5 py-1 text-xs font-semibold text-white shadow-sm hover:bg-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 transition"
+                                            >
+                                                <x-heroicon-o-document-text class="h-3 w-3" />
+                                                {{ __('filament-translation-toolkit::dashboard.actions.generate') }}
+                                            </button>
                                             @if($aiStatus && $aiStatus['configured'])
-                                                {{ $this->generateAiTableTranslation($item['table']) }}
+                                                <button
+                                                    type="button"
+                                                    wire:click="generateAiTableTranslation('{{ $item['table'] }}')"
+                                                    class="inline-flex items-center gap-1 rounded-lg bg-warning-500 px-2.5 py-1 text-xs font-semibold text-white shadow-sm hover:bg-warning-600 focus:outline-none focus:ring-2 focus:ring-warning-500 focus:ring-offset-2 transition"
+                                                >
+                                                    <x-heroicon-o-sparkles class="h-3 w-3" />
+                                                    {{ __('filament-translation-toolkit::dashboard.actions.generate_ai') }}
+                                                </button>
                                             @endif
                                         </div>
                                     </td>
@@ -143,9 +151,7 @@
         </x-filament::section>
     </div>
 
-    {{-- ============================================ --}}
-    {{-- SECTION: Translation Completeness            --}}
-    {{-- ============================================ --}}
+    {{-- SECTION: Translation Completeness --}}
     <div class="mb-6">
         <x-filament::section>
             <x-slot name="heading">
@@ -163,7 +169,8 @@
                             $fileName = $parts[0];
                             $targetLocale = $parts[1] ?? '?';
                             $percentage = $item['completeness'];
-                            $color = $percentage >= 90 ? 'success' : ($percentage >= 50 ? 'warning' : 'danger');
+                            $barColor = $percentage >= 90 ? 'bg-success-500' : ($percentage >= 50 ? 'bg-warning-500' : 'bg-danger-500');
+                            $textColor = $percentage >= 90 ? 'text-success-600 dark:text-success-400' : ($percentage >= 50 ? 'text-warning-600 dark:text-warning-400' : 'text-danger-600 dark:text-danger-400');
                         @endphp
                         <div class="flex items-center gap-4">
                             <div class="w-48 flex-shrink-0">
@@ -172,16 +179,11 @@
                             </div>
                             <div class="flex-1">
                                 <div class="w-full bg-gray-200 rounded-full h-2.5 dark:bg-gray-700">
-                                    <div
-                                        class="h-2.5 rounded-full bg-{{ $color }}-500"
-                                        style="width: {{ $percentage }}%"
-                                    ></div>
+                                    <div class="h-2.5 rounded-full {{ $barColor }}" style="width: {{ $percentage }}%"></div>
                                 </div>
                             </div>
                             <div class="w-20 text-right text-xs font-medium">
-                                <span class="text-{{ $color }}-600 dark:text-{{ $color }}-400">
-                                    {{ $percentage }}%
-                                </span>
+                                <span class="{{ $textColor }}">{{ $percentage }}%</span>
                             </div>
                             <div class="w-24 text-right text-xs text-gray-500">
                                 {{ $item['target_keys'] }}/{{ $item['base_keys'] }}
@@ -204,9 +206,7 @@
         </x-filament::section>
     </div>
 
-    {{-- ============================================ --}}
-    {{-- SECTION: Model Relationships                 --}}
-    {{-- ============================================ --}}
+    {{-- SECTION: Model Relationships --}}
     <div class="mb-6">
         <x-filament::section>
             <x-slot name="heading">
@@ -242,9 +242,7 @@
                         <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
                             @foreach($relationships as $item)
                                 <tr class="bg-white dark:bg-gray-900">
-                                    <td class="px-4 py-3 font-medium">
-                                        {{ $item['model'] }}
-                                    </td>
+                                    <td class="px-4 py-3 font-medium">{{ $item['model'] }}</td>
                                     <td class="px-4 py-3">
                                         @if(count($item['relationships']) > 0)
                                             @foreach($item['relationships'] as $rel)
@@ -277,7 +275,14 @@
                                     <td class="px-4 py-3 text-right">
                                         @if(!$item['has_translation'])
                                             <div class="flex items-center justify-end gap-1">
-                                                {{ $this->generateMissingRelationTranslation($item['model']) }}
+                                                <button
+                                                    type="button"
+                                                    wire:click="generateMissingRelationTranslation('{{ class_basename($item['model']) }}')"
+                                                    class="inline-flex items-center gap-1 rounded-lg bg-info-600 px-2.5 py-1 text-xs font-semibold text-white shadow-sm hover:bg-info-500 focus:outline-none focus:ring-2 focus:ring-info-500 focus:ring-offset-2 transition"
+                                                >
+                                                    <x-heroicon-o-link class="h-3 w-3" />
+                                                    {{ __('filament-translation-toolkit::dashboard.actions.generate_relation') }}
+                                                </button>
                                             </div>
                                         @endif
                                     </td>
@@ -295,9 +300,7 @@
         </x-filament::section>
     </div>
 
-    {{-- ============================================ --}}
-    {{-- SECTION: File Summary                        --}}
-    {{-- ============================================ --}}
+    {{-- SECTION: File Summary --}}
     <div class="mb-6">
         <x-filament::section collapsed>
             <x-slot name="heading">
@@ -322,9 +325,7 @@
                         <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
                             @foreach($fileSummary as $item)
                                 <tr class="bg-white dark:bg-gray-900">
-                                    <td class="px-4 py-3 font-mono text-xs">
-                                        {{ $item['file'] }}.php
-                                    </td>
+                                    <td class="px-4 py-3 font-mono text-xs">{{ $item['file'] }}.php</td>
                                     @foreach(config('filament-translation-toolkit.locales', ['en', 'ar']) as $locale)
                                         <td class="px-4 py-3 text-center">
                                             @if(isset($item['locales'][$locale]))
