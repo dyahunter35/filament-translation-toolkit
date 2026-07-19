@@ -14,11 +14,11 @@ use Illuminate\Support\Str;
 
 class TranslationDashboard extends Page
 {
-    protected static ?string $navigationIcon = 'heroicon-o-language';
+    protected static \BackedEnum|string|null $navigationIcon = 'heroicon-o-language';
 
     protected static ?string $navigationLabel = 'Translation Dashboard';
 
-    protected static ?string $navigationGroup = 'Toolkit';
+    protected static \UnitEnum|string|null $navigationGroup = 'Toolkit';
 
     protected static ?int $navigationSort = 999;
 
@@ -56,7 +56,7 @@ class TranslationDashboard extends Page
 
     public function generateTableTranslation(string $table, string $type = 'resource'): Action
     {
-        return Action::make('generate_'.$table)
+        return Action::make('generate_' . $table)
             ->label(__('filament-translation-toolkit::dashboard.actions.generate'))
             ->icon('heroicon-o-document-text')
             ->color('primary')
@@ -95,7 +95,7 @@ class TranslationDashboard extends Page
 
                     $content = "<?php\nreturn [\n";
                     $content .= "    'navigation' => [\n";
-                    $content .= "        'group' => '".($lang === 'ar' ? $pluralName : Str::title(str_replace('_', ' ', Str::plural($table))))."',\n";
+                    $content .= "        'group' => '" . ($lang === 'ar' ? $pluralName : Str::title(str_replace('_', ' ', Str::plural($table)))) . "',\n";
                     $content .= "        'label' => '{$pluralName}',\n";
                     $content .= "        'plural_label' => '{$pluralName}',\n";
                     $content .= "        'model_label' => '{$className}',\n";
@@ -134,7 +134,7 @@ class TranslationDashboard extends Page
 
     public function generateAiTableTranslation(string $table, string $type = 'resource'): Action
     {
-        return Action::make('generate_ai_'.$table)
+        return Action::make('generate_ai_' . $table)
             ->label(__('filament-translation-toolkit::dashboard.actions.generate_ai'))
             ->icon('heroicon-o-sparkles')
             ->color('warning')
@@ -175,7 +175,7 @@ class TranslationDashboard extends Page
 
     public function generateMissingRelationTranslation(string $model): Action
     {
-        return Action::make('generate_relation_'.$model)
+        return Action::make('generate_relation_' . $model)
             ->label(__('filament-translation-toolkit::dashboard.actions.generate_relation'))
             ->icon('heroicon-o-link')
             ->color('info')
@@ -204,7 +204,7 @@ class TranslationDashboard extends Page
             Action::make('refresh')
                 ->label(__('filament-translation-toolkit::dashboard.actions.refresh'))
                 ->icon('heroicon-o-arrow-path')
-                ->action(fn () => $this->refreshData()),
+                ->action(fn() => $this->refreshData()),
         ];
     }
 }

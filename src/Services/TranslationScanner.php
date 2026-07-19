@@ -27,7 +27,7 @@ class TranslationScanner
      */
     public function getAllTables(): array
     {
-        return Schema::getConnection()->getDoctrineSchemaManager()->listTableNames();
+        return array_column(Schema::getTables(), 'name');
     }
 
     /**

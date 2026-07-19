@@ -187,13 +187,11 @@
                                 {{ $item['target_keys'] }}/{{ $item['base_keys'] }}
                             </div>
                             @if(count($item['missing_keys']) > 0)
-                                <x-filament::tooltip
-                                    :content="implode(', ', array_slice($item['missing_keys'], 0, 10)) . (count($item['missing_keys']) > 10 ? '...' : '')"
-                                >
+                                <span title="{{ implode(', ', array_slice($item['missing_keys'], 0, 10)) }}{{ count($item['missing_keys']) > 10 ? '...' : '' }}">
                                     <x-filament::badge color="warning" size="sm">
                                         -{{ count($item['missing_keys']) }}
                                     </x-filament::badge>
-                                </x-filament::tooltip>
+                                </span>
                             @endif
                         </div>
                     @endforeach
@@ -329,7 +327,7 @@
                                     </td>
                                     @foreach(config('filament-translation-toolkit.locales', ['en', 'ar']) as $locale)
                                         <td class="px-4 py-3 text-center">
-                                            @if(isset($item['locales'][$locale))
+                                            @if(isset($item['locales'][$locale]))
                                                 <span class="font-medium">{{ $item['locales'][$locale] }}</span>
                                             @else
                                                 <x-filament::badge color="danger" size="sm">
