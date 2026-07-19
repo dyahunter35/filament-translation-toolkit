@@ -1,4 +1,4 @@
-﻿# Filament Translation Toolkit
+# Filament Translation Toolkit
 
 A comprehensive, production-ready translation toolkit for **Filament v5** â€” automatic UI translation, AI-powered translation generation, language file scaffolding, and a full dashboard to monitor translation health across your entire application.
 

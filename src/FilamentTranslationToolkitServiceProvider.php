@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 
 namespace Dyahunter35\FilamentTranslationToolkit;
 
