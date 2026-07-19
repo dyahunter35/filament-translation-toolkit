@@ -1,8 +1,8 @@
 {
-    "name": "alsultan/filament-translation-toolkit",
+    "name": "dyahunter35/filament-translation-toolkit",
     "description": "A comprehensive translation toolkit for Filament v5 — automatic UI translation, AI-powered translation generation, and language file scaffolding.",
     "keywords": [
-        "alsultan",
+        "dyahunter35",
         "laravel",
         "filamentphp",
         "filament",
@@ -12,10 +12,10 @@
         "i18n",
         "ai-translation"
     ],
-    "homepage": "https://github.com/alsultan/filament-translation-toolkit",
+    "homepage": "https://github.com/dyahunter35/filament-translation-toolkit",
     "support": {
-        "issues": "https://github.com/alsultan/filament-translation-toolkit/issues",
-        "source": "https://github.com/alsultan/filament-translation-toolkit"
+        "issues": "https://github.com/dyahunter35/filament-translation-toolkit/issues",
+        "source": "https://github.com/dyahunter35/filament-translation-toolkit"
     },
     "license": "MIT",
     "authors": [

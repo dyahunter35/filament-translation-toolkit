@@ -57,32 +57,8 @@ A comprehensive, production-ready translation toolkit for **Filament v5** — au
 
 ### Step 1: Add the Package
 
-#### Option A — Local Development (Path Repository)
-
-If the package is in a local `packages/` directory:
-
-```json
-// composer.json
-{
-    "repositories": [
-        {
-            "type": "path",
-            "url": "packages/alsultan/filament-translation-toolkit"
-        }
-    ]
-}
-```
-
-Then:
-
 ```bash
-composer require alsultan/filament-translation-toolkit
-```
-
-#### Option B — From GitHub
-
-```bash
-composer require alsultan/filament-translation-toolkit
+composer require dyahunter35/filament-translation-toolkit
 ```
 
 ### Step 2: Publish the Config
