@@ -100,7 +100,7 @@ class MakeTranslationCommand extends Command
         return $this->generateBasicPage($snakeName, $pageData, $langPath, $targetLangs);
     }
 
-    protected function extractPageDefaults(string $className): array
+    public function extractPageDefaults(string $className): array
     {
         $pageName = class_basename($className);
         $heading = Str::title(str_replace('_', ' ', Str::snake($pageName)));
