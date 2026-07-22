@@ -324,7 +324,7 @@ class TranslationScanner
             if (
                 class_exists($className)
                 && str_ends_with($className, 'Resource')
-                && !abstract_class_exists($className)
+                && !(new ReflectionClass($className))->isAbstract()
             ) {
                 $reflection = new ReflectionClass($className);
                 $getModelMethod = $reflection->getMethod('getModel');

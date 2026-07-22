@@ -8,23 +8,12 @@ use Filament\Actions\Action;
 use Filament\Forms\Components\Select;
 use Filament\Notifications\Notification;
 use Filament\Pages\Page;
-use Illuminate\Contracts\Support\Htmlable;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Str;
 
 class TranslationDashboard extends Page
 {
-    protected static \BackedEnum|string|null $navigationIcon = null;
-
-    protected static ?string $navigationLabel = null;
-
-    protected static \UnitEnum|string|null $navigationGroup = null;
-
-    protected static ?int $navigationSort = null;
-
-    protected static ?string $title = null;
-
     protected string $view = 'filament-translation-toolkit::pages.translation-dashboard';
 
     public static function getNavigationIcon(): ?string
@@ -49,7 +38,7 @@ class TranslationDashboard extends Page
         return config('filament-translation-toolkit.navigation.sort', 999);
     }
 
-    public function getTitle(): string|Htmlable
+    public function getTitle(): string
     {
         return config('filament-translation-toolkit.navigation.title')
             ?? __("filament-translation-toolkit::dashboard.navigation.title");
@@ -124,22 +113,22 @@ class TranslationDashboard extends Page
 
         $content = "<?php\nreturn [\n";
         $content .= "    'navigation' => [\n";
-        $content .= "        'group' => '".addslashes($navigation['group'])."',\n";
-        $content .= "        'label' => '".addslashes($navigation['label'])."',\n";
-        $content .= "        'plural_label' => '".addslashes($navigation['plural_label'])."',\n";
-        $content .= "        'model_label' => '".addslashes($navigation['model_label'])."',\n";
-        $content .= "        'icon' => '".addslashes($navigation['icon'])."',\n";
+        $content .= "        'group' => '" . addslashes($navigation['group']) . "',\n";
+        $content .= "        'label' => '" . addslashes($navigation['label']) . "',\n";
+        $content .= "        'plural_label' => '" . addslashes($navigation['plural_label']) . "',\n";
+        $content .= "        'model_label' => '" . addslashes($navigation['model_label']) . "',\n";
+        $content .= "        'icon' => '" . addslashes($navigation['icon']) . "',\n";
         $content .= "    ],\n";
         $content .= "    'breadcrumbs' => [\n";
-        $content .= "        'index' => '".addslashes($navigation['plural_label'])."',\n";
-        $content .= "        'create' => 'Add ".addslashes($className)."',\n";
-        $content .= "        'edit' => 'Edit ".addslashes($className)."',\n";
+        $content .= "        'index' => '" . addslashes($navigation['plural_label']) . "',\n";
+        $content .= "        'create' => 'Add " . addslashes($className) . "',\n";
+        $content .= "        'edit' => 'Edit " . addslashes($className) . "',\n";
         $content .= "    ],\n";
         $content .= "    'fields' => [\n";
         foreach ($fieldsArray as $name => $field) {
             $content .= "        '{$name}' => [\n";
-            $content .= "            'label' => '".addslashes($field['label'])."',\n";
-            $content .= "            'placeholder' => '".addslashes($field['placeholder'])."',\n";
+            $content .= "            'label' => '" . addslashes($field['label']) . "',\n";
+            $content .= "            'placeholder' => '" . addslashes($field['placeholder']) . "',\n";
             $content .= "        ],\n";
         }
         $content .= "    ],\n";
@@ -251,14 +240,14 @@ class TranslationDashboard extends Page
 
         $content = "<?php\nreturn [\n";
         $content .= "    'label' => [\n";
-        $content .= "        'plural' => '".addslashes(Str::plural($className))."',\n";
-        $content .= "        'single' => '".addslashes($className)."',\n";
+        $content .= "        'plural' => '" . addslashes(Str::plural($className)) . "',\n";
+        $content .= "        'single' => '" . addslashes($className) . "',\n";
         $content .= "    ],\n";
         $content .= "    'fields' => [\n";
         foreach ($fieldsArray as $name => $field) {
             $content .= "        '{$name}' => [\n";
-            $content .= "            'label' => '".addslashes($field['label'])."',\n";
-            $content .= "            'placeholder' => '".addslashes($field['placeholder'])."',\n";
+            $content .= "            'label' => '" . addslashes($field['label']) . "',\n";
+            $content .= "            'placeholder' => '" . addslashes($field['placeholder']) . "',\n";
             $content .= "        ],\n";
         }
         $content .= "    ],\n";
@@ -321,7 +310,7 @@ class TranslationDashboard extends Page
             Action::make('refresh')
                 ->label(__('filament-translation-toolkit::dashboard.actions.refresh'))
                 ->icon('heroicon-o-arrow-path')
-                ->action(fn () => $this->refreshData()),
+                ->action(fn() => $this->refreshData()),
         ];
     }
 }
