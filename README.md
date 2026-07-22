@@ -295,14 +295,14 @@ Company::isTranslatable();  // Check if translation is enabled
 ### 2. Generate Translation Files for a Table
 
 ```bash
-# Basic â€” generates scaffolding from column names
-php artisan make:table-translation companies
+# Basic — generates scaffolding from column names
+php artisan make:translation companies
 
-# AI-powered â€” generates smart translations
-php artisan make:ai-translation companies --type=resource
+# AI-powered — generates smart translations
+php artisan make:translation companies --ai --type=resource
 
 # Relation manager
-php artisan make:ai-translation documents --type=relation
+php artisan make:translation documents --ai --type=relation
 ```
 
 ### 3. Add the Filament Traits to Your Resources
@@ -440,106 +440,48 @@ The `TranslationDashboard` is a comprehensive monitoring page with 5 sections:
 
 ## Artisan Commands
 
-### `make:table-translation`
+### `make:translation`
 
-Generate a basic translation file from database table columns.
+Generate translation files for a database table. Supports both basic scaffolding and AI-powered generation.
 
 ```bash
-php artisan make:table-translation {table} {--lang=} {--use-resource-defaults}
+php artisan make:translation {table} {--ai} {--type=resource} {--lang=} {--use-resource-defaults}
 ```
 
 | Parameter | Description |
 |---|---|
 | `{table}` | The database table name |
-| `--lang` | Specific locale (defaults to all configured locales) |
-| `--use-resource-defaults` | Use navigation defaults from Filament Resource class |
-
-**Examples:**
-```bash
-# Generate for all languages
-php artisan make:table-translation companies
-
-# Generate only for English
-php artisan make:table-translation companies --lang=en
-
-# Use Resource class defaults (label, group, icon) instead of generic values
-php artisan make:table-translation companies --use-resource-defaults
-
-# Combine options
-php artisan make:table-translation companies --lang=ar --use-resource-defaults
-```
-
-**What it generates:**
-```php
-// lang/en/company.php
-<?php
-return [
-    'navigation' => [
-        'group' => 'Companies',
-        'label' => 'Companies',
-        'plural_label' => 'Companies',
-        'model_label' => 'Company',
-        'icon' => 'heroicon-m-building-office-2',
-    ],
-    'breadcrumbs' => [
-        'index' => 'Companies',
-        'create' => 'Add Company',
-        'edit' => 'Edit Company',
-    ],
-    'fields' => [
-        'id' => [
-            'label' => 'Id',
-            'placeholder' => '',
-        ],
-        'name' => [
-            'label' => 'Name',
-            'placeholder' => '',
-        ],
-        'created_at' => [
-            'label' => 'Created At',
-            'placeholder' => '',
-        ],
-    ],
-];
-```
-
----
-
-### `make:ai-translation`
-
-Generate smart translation files using AI.
-
-```bash
-php artisan make:ai-translation {table} {--type=resource} {--lang=} {--use-resource-defaults}
-```
-
-| Parameter | Description |
-|---|---|
-| `{table}` | The database table name |
+| `--ai` | Use AI to generate smart translations (requires OpenRouter API key) |
 | `--type` | Template type: `resource` or `relation` |
 | `--lang` | Specific locale (defaults to all configured locales) |
 | `--use-resource-defaults` | Use navigation defaults from Filament Resource class |
 
 **Examples:**
 ```bash
-# Resource translation for all languages
-php artisan make:ai-translation companies --type=resource
+# Basic scaffolding for all languages
+php artisan make:translation companies
 
-# Resource translation only for Arabic
-php artisan make:ai-translation companies --type=resource --lang=ar
+# Basic scaffolding only for English
+php artisan make:translation companies --lang=en
 
-# Use Resource class defaults (label, group, icon) in the translation
-php artisan make:ai-translation companies --type=resource --use-resource-defaults
+# AI-powered resource translation for all languages
+php artisan make:translation companies --ai --type=resource
 
-# Relation manager translation
-php artisan make:ai-translation documents --type=relation
+# AI-powered resource translation only for Arabic
+php artisan make:translation companies --ai --type=resource --lang=ar
+
+# AI-powered relation manager translation
+php artisan make:translation documents --ai --type=relation
+
+# Use Resource class defaults (label, group, icon)
+php artisan make:translation companies --ai --use-resource-defaults
 ```
 
-**Requirements:**
+**Requirements for AI mode:**
 - `OPENROUTER_API_KEY` must be set in `.env`
 - The table must exist in the database
 
-**What it does:**
+**What AI mode does:**
 1. Reads all columns from the database table
 2. Detects Eloquent relationships from the model
 3. Sends everything to AI with a structured prompt
@@ -948,7 +890,7 @@ class WidgetTemplate extends BaseTranslationTemplate
 
 Use it:
 ```bash
-php artisan make:ai-translation widgets --type=widget
+php artisan make:translation widgets --ai --type=widget
 ```
 
 ---
@@ -1036,8 +978,7 @@ packages/Dyahunter35/filament-translation-toolkit/
 â””â”€â”€ src/
     â”œâ”€â”€ FilamentTranslationToolkitServiceProvider.php
     â”œâ”€â”€ Commands/
-    â”‚   â”œâ”€â”€ MakeTableTranslationCommand.php
-    â”‚   â””â”€â”€ MakeTableTranslationAiCommand.php
+    â”‚   â””â”€â”€ MakeTranslationCommand.php
     â”œâ”€â”€ Concerns/
     â”‚   â”œâ”€â”€ Translatable.php
     â”‚   â”œâ”€â”€ HasTranslateConfigure.php

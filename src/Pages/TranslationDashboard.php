@@ -184,6 +184,7 @@ class TranslationDashboard extends Page
     {
         $params = [
             'table' => $table,
+            '--ai' => true,
             '--type' => 'resource',
         ];
 
@@ -191,7 +192,7 @@ class TranslationDashboard extends Page
             $params['--lang'] = $lang;
         }
 
-        $exitCode = Artisan::call('make:ai-translation', $params);
+        $exitCode = Artisan::call('make:translation', $params);
 
         $this->refreshData();
 
@@ -212,8 +213,9 @@ class TranslationDashboard extends Page
     {
         $tableName = Str::of(Str::snake(Str::plural($model)))->toString();
 
-        $exitCode = Artisan::call('make:table-translation', [
+        $exitCode = Artisan::call('make:translation', [
             'table' => $tableName,
+            '--type' => 'relation',
         ]);
 
         $this->refreshData();

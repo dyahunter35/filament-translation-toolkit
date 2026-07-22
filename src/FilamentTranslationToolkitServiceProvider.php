@@ -2,8 +2,7 @@
 
 namespace Dyahunter35\FilamentTranslationToolkit;
 
-use Dyahunter35\FilamentTranslationToolkit\Commands\MakeTableTranslationAiCommand;
-use Dyahunter35\FilamentTranslationToolkit\Commands\MakeTableTranslationCommand;
+use Dyahunter35\FilamentTranslationToolkit\Commands\MakeTranslationCommand;
 use Dyahunter35\FilamentTranslationToolkit\Services\TranslationResolver;
 use Dyahunter35\FilamentTranslationToolkit\Services\TranslationScanner;
 use Filament\Forms\Components\Field;
@@ -29,8 +28,7 @@ class FilamentTranslationToolkitServiceProvider extends PackageServiceProvider
             ->hasTranslations()
             ->hasViews()
             ->hasCommands([
-                MakeTableTranslationCommand::class,
-                MakeTableTranslationAiCommand::class,
+                MakeTranslationCommand::class,
             ])
             ->hasInstallCommand(function (InstallCommand $command) {
                 $command->publishConfigFile();
