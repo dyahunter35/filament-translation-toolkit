@@ -54,8 +54,8 @@ return [
         'no_files_to_compare' => 'لا توجد ملفات ترجمة للمقارنة.',
         'no_relationships' => 'لا توجد علاقات',
         'not_translated' => 'لا يوجد ملف ترجمة',
-        'no_models_found' => 'لم يتم العثور على نماذج Eloquent.',
-        'check_model_namespace' => 'تأكد من أن model_namespace في الإعدادات يتطابق مع هيكل مشروعك.',
+        'no_models_found' => 'لم يتم العثور على نماذج قابلة للترجمة.',
+        'add_translatable_trait' => 'أضف الخاصية Dyahunter35\FilamentTranslationToolkit\Concerns\Translatable إلى نماذج Eloquent الخاصة بك لتفعيل الترجمة.',
         'no_translation_files' => 'لا توجد ملفات ترجمة.',
         'processing' => 'جاري المعالجة، يرجى الانتظار...',
     ],
@@ -64,7 +64,9 @@ return [
         'refresh' => 'تحديث',
         'generate' => 'إنشاء',
         'generate_ai' => 'إنشاء بالذكاء الاصطناعي',
+        'generate_all' => 'الكل',
         'generate_relation' => 'إنشاء ترجمة',
+        'use_resource_defaults' => 'استخدام قيم Resource الافتراضية',
         'generate_confirm_title' => 'إنشاء ملف ترجمة',
         'generate_confirm_description' => 'سيتم إنشاء ملف ترجمة أساسي لجدول :table. هل تواصل؟',
         'generate_ai_title' => 'إنشاء ترجمة بالذكاء الاصطناعي',
@@ -77,8 +79,10 @@ return [
 
     'notifications' => [
         'generated' => 'تم إنشاء ملف الترجمة بنجاح.',
+        'generated_lang' => 'تم إنشاء ترجمة :lang بنجاح.',
         'ai_generated' => 'تم إنشاء ملف الترجمة بالذكاء الاصطناعي بنجاح.',
         'relation_generated' => 'تم إنشاء ملف ترجمة العلاقات.',
+        'relation_generated_lang' => 'تم إنشاء ترجمة العلاقات لـ :lang بنجاح.',
     ],
 
 ];

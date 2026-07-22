@@ -85,18 +85,32 @@
     <div class="mb-6">
         <x-filament::section>
             <x-slot name="heading">
-                <div class="flex items-center gap-2">
-                    <x-heroicon-o-document-magnifying-glass class="h-5 w-5" />
-                    {{ __('filament-translation-toolkit::dashboard.sections.missing_tables') }}
-                    @if(count($missingTables) > 0)
-                        <x-filament::badge color="danger">
-                            {{ count($missingTables) }}
-                        </x-filament::badge>
-                    @else
-                        <x-filament::badge color="success">
-                            {{ __('filament-translation-toolkit::dashboard.badges.all_covered') }}
-                        </x-filament::badge>
-                    @endif
+                <div class="flex items-center justify-between w-full">
+                    <div class="flex items-center gap-2">
+                        <x-heroicon-o-document-magnifying-glass class="h-5 w-5" />
+                        {{ __('filament-translation-toolkit::dashboard.sections.missing_tables') }}
+                        @if(count($missingTables) > 0)
+                            <x-filament::badge color="danger">
+                                {{ count($missingTables) }}
+                            </x-filament::badge>
+                        @else
+                            <x-filament::badge color="success">
+                                {{ __('filament-translation-toolkit::dashboard.badges.all_covered') }}
+                            </x-filament::badge>
+                        @endif
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input
+                                type="checkbox"
+                                wire:click="toggleResourceDefaults"
+                                class="sr-only peer"
+                                @if($useResourceDefaults) checked @endif
+                            >
+                            <div class="w-9 h-5 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-primary-300 dark:peer-focus:ring-primary-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all dark:border-gray-600 peer-checked:bg-primary-600"></div>
+                            <span class="ml-2 text-xs text-gray-500 dark:text-gray-400">{{ __('filament-translation-toolkit::dashboard.actions.use_resource_defaults') }}</span>
+                        </label>
+                    </div>
                 </div>
             </x-slot>
 
@@ -133,38 +147,62 @@
                                         @endforeach
                                     </td>
                                     <td class="px-4 py-3 text-right">
-                                        <div class="flex items-center justify-end gap-1">
-                                            <button
-                                                type="button"
-                                                wire:click="generateTableTranslation('{{ $item['table'] }}')"
-                                                wire:loading.attr="disabled"
-                                                wire:loading.class="opacity-50 cursor-not-allowed"
-                                                wire:loading.target="generateTableTranslation('{{ $item['table'] }}')"
-                                                class="inline-flex items-center gap-1 rounded-lg bg-primary-600 px-2.5 py-1 text-xs font-semibold text-white shadow-sm hover:bg-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 transition disabled:opacity-50 disabled:cursor-not-allowed"
-                                            >
-                                                <svg wire:loading wire:loading.target="generateTableTranslation('{{ $item['table'] }}')" class="h-3 w-3 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
-                                                </svg>
-                                                <x-heroicon-o-document-text wire:loading.remove wire:loading.target="generateTableTranslation('{{ $item['table'] }}')" class="h-3 w-3" />
-                                                {{ __('filament-translation-toolkit::dashboard.actions.generate') }}
-                                            </button>
-                                            @if($aiStatus && $aiStatus['configured'])
+                                        <div class="flex flex-wrap items-center justify-end gap-1">
+                                            {{-- Per-language generate buttons --}}
+                                            @foreach($item['missing_in'] as $locale)
                                                 <button
                                                     type="button"
-                                                    wire:click="generateAiTableTranslation('{{ $item['table'] }}')"
+                                                    wire:click="generateTableTranslation('{{ $item['table'] }}', '{{ $locale }}', '{{ $item['suggested_file'] }}')"
                                                     wire:loading.attr="disabled"
                                                     wire:loading.class="opacity-50 cursor-not-allowed"
-                                                    wire:loading.target="generateAiTableTranslation('{{ $item['table'] }}')"
-                                                    class="inline-flex items-center gap-1 rounded-lg bg-warning-500 px-2.5 py-1 text-xs font-semibold text-white shadow-sm hover:bg-warning-600 focus:outline-none focus:ring-2 focus:ring-warning-500 focus:ring-offset-2 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                                                    wire:loading.target="generateTableTranslation('{{ $item['table'] }}', '{{ $locale }}', '{{ $item['suggested_file'] }}')"
+                                                    class="inline-flex items-center gap-1 rounded-lg bg-primary-600 px-2.5 py-1 text-xs font-semibold text-white shadow-sm hover:bg-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 transition disabled:opacity-50 disabled:cursor-not-allowed"
                                                 >
-                                                    <svg wire:loading wire:loading.target="generateAiTableTranslation('{{ $item['table'] }}')" class="h-3 w-3 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                                    <svg wire:loading wire:loading.target="generateTableTranslation('{{ $item['table'] }}', '{{ $locale }}', '{{ $item['suggested_file'] }}')" class="h-3 w-3 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                                                         <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                                                         <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
                                                     </svg>
-                                                    <x-heroicon-o-sparkles wire:loading.remove wire:loading.target="generateAiTableTranslation('{{ $item['table'] }}')" class="h-3 w-3" />
-                                                    {{ __('filament-translation-toolkit::dashboard.actions.generate_ai') }}
+                                                    <x-heroicon-o-document-text wire:loading.remove wire:loading.target="generateTableTranslation('{{ $item['table'] }}', '{{ $locale }}', '{{ $item['suggested_file'] }}')" class="h-3 w-3" />
+                                                    {{ strtoupper($locale) }}
                                                 </button>
+                                            @endforeach
+
+                                            {{-- Generate all languages button --}}
+                                            <button
+                                                type="button"
+                                                wire:click="generateTableTranslationAll('{{ $item['table'] }}', '{{ $item['suggested_file'] }}')"
+                                                wire:loading.attr="disabled"
+                                                wire:loading.class="opacity-50 cursor-not-allowed"
+                                                wire:loading.target="generateTableTranslationAll('{{ $item['table'] }}', '{{ $item['suggested_file'] }}')"
+                                                class="inline-flex items-center gap-1 rounded-lg bg-gray-600 px-2.5 py-1 text-xs font-semibold text-white shadow-sm hover:bg-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                                            >
+                                                <svg wire:loading wire:loading.target="generateTableTranslationAll('{{ $item['table'] }}', '{{ $item['suggested_file'] }}')" class="h-3 w-3 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+                                                </svg>
+                                                <x-heroicon-o-language wire:loading.remove wire:loading.target="generateTableTranslationAll('{{ $item['table'] }}', '{{ $item['suggested_file'] }}')" class="h-3 w-3" />
+                                                {{ __('filament-translation-toolkit::dashboard.actions.generate_all') }}
+                                            </button>
+
+                                            {{-- AI generate buttons per language --}}
+                                            @if($aiStatus && $aiStatus['configured'])
+                                                @foreach($item['missing_in'] as $locale)
+                                                    <button
+                                                        type="button"
+                                                        wire:click="generateAiTableTranslation('{{ $item['table'] }}', '{{ $locale }}')"
+                                                        wire:loading.attr="disabled"
+                                                        wire:loading.class="opacity-50 cursor-not-allowed"
+                                                        wire:loading.target="generateAiTableTranslation('{{ $item['table'] }}', '{{ $locale }}')"
+                                                        class="inline-flex items-center gap-1 rounded-lg bg-warning-500 px-2.5 py-1 text-xs font-semibold text-white shadow-sm hover:bg-warning-600 focus:outline-none focus:ring-2 focus:ring-warning-500 focus:ring-offset-2 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                                                    >
+                                                        <svg wire:loading wire:loading.target="generateAiTableTranslation('{{ $item['table'] }}', '{{ $locale }}')" class="h-3 w-3 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+                                                        </svg>
+                                                        <x-heroicon-o-sparkles wire:loading.remove wire:loading.target="generateAiTableTranslation('{{ $item['table'] }}', '{{ $locale }}')" class="h-3 w-3" />
+                                                        AI {{ strtoupper($locale) }}
+                                                    </button>
+                                                @endforeach
                                             @endif
                                         </div>
                                     </td>
@@ -177,6 +215,7 @@
                 <div class="text-center py-6 text-gray-500 dark:text-gray-400">
                     <x-heroicon-o-check-circle class="h-12 w-12 mx-auto mb-3 text-success-500" />
                     <p>{{ __('filament-translation-toolkit::dashboard.messages.all_tables_covered') }}</p>
+                    <p class="text-xs mt-1">{{ __('filament-translation-toolkit::dashboard.messages.add_translatable_trait') }}</p>
                 </div>
             @endif
         </x-filament::section>
@@ -304,25 +343,50 @@
                                         @endif
                                     </td>
                                     <td class="px-4 py-3 text-right">
+                                        <div class="flex flex-wrap items-center justify-end gap-1">
                                             @if(!$item['has_translation'])
-                                            <div class="flex items-center justify-end gap-1">
+                                                {{-- Per-language generate buttons --}}
+                                                @foreach($item['missing_in'] as $locale)
+                                                    <button
+                                                        type="button"
+                                                        wire:click="generateRelationTranslation('{{ class_basename($item['model']) }}', '{{ $locale }}')"
+                                                        wire:loading.attr="disabled"
+                                                        wire:loading.class="opacity-50 cursor-not-allowed"
+                                                        wire:loading.target="generateRelationTranslation('{{ class_basename($item['model']) }}', '{{ $locale }}')"
+                                                        class="inline-flex items-center gap-1 rounded-lg bg-info-600 px-2.5 py-1 text-xs font-semibold text-white shadow-sm hover:bg-info-500 focus:outline-none focus:ring-2 focus:ring-info-500 focus:ring-offset-2 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                                                    >
+                                                        <svg wire:loading wire:loading.target="generateRelationTranslation('{{ class_basename($item['model']) }}', '{{ $locale }}')" class="h-3 w-3 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+                                                        </svg>
+                                                        <x-heroicon-o-link wire:loading.remove wire:loading.target="generateRelationTranslation('{{ class_basename($item['model']) }}', '{{ $locale }}')" class="h-3 w-3" />
+                                                        {{ strtoupper($locale) }}
+                                                    </button>
+                                                @endforeach
+
+                                                {{-- Generate all languages button --}}
                                                 <button
                                                     type="button"
-                                                    wire:click="generateMissingRelationTranslation('{{ class_basename($item['model']) }}')"
+                                                    wire:click="generateRelationTranslationAll('{{ class_basename($item['model']) }}')"
                                                     wire:loading.attr="disabled"
                                                     wire:loading.class="opacity-50 cursor-not-allowed"
-                                                    wire:loading.target="generateMissingRelationTranslation('{{ class_basename($item['model']) }}')"
-                                                    class="inline-flex items-center gap-1 rounded-lg bg-info-600 px-2.5 py-1 text-xs font-semibold text-white shadow-sm hover:bg-info-500 focus:outline-none focus:ring-2 focus:ring-info-500 focus:ring-offset-2 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                                                    wire:loading.target="generateRelationTranslationAll('{{ class_basename($item['model']) }}')"
+                                                    class="inline-flex items-center gap-1 rounded-lg bg-gray-600 px-2.5 py-1 text-xs font-semibold text-white shadow-sm hover:bg-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition disabled:opacity-50 disabled:cursor-not-allowed"
                                                 >
-                                                    <svg wire:loading wire:loading.target="generateMissingRelationTranslation('{{ class_basename($item['model']) }}')" class="h-3 w-3 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                                    <svg wire:loading wire:loading.target="generateRelationTranslationAll('{{ class_basename($item['model']) }}')" class="h-3 w-3 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                                                         <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                                                         <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
                                                     </svg>
-                                                    <x-heroicon-o-link wire:loading.remove wire:loading.target="generateMissingRelationTranslation('{{ class_basename($item['model']) }}')" class="h-3 w-3" />
-                                                    {{ __('filament-translation-toolkit::dashboard.actions.generate_relation') }}
+                                                    <x-heroicon-o-language wire:loading.remove wire:loading.target="generateRelationTranslationAll('{{ class_basename($item['model']) }}')" class="h-3 w-3" />
+                                                    {{ __('filament-translation-toolkit::dashboard.actions.generate_all') }}
                                                 </button>
-                                            </div>
+                                            @else
+                                                {{-- Show existing locales --}}
+                                                @foreach($item['exists_in'] as $locale)
+                                                    <x-filament::badge color="success" size="sm">{{ $locale }}</x-filament::badge>
+                                                @endforeach
                                             @endif
+                                        </div>
                                     </td>
                                 </tr>
                             @endforeach
@@ -332,7 +396,7 @@
             @else
                 <div class="text-center py-6 text-gray-500 dark:text-gray-400">
                     <p>{{ __('filament-translation-toolkit::dashboard.messages.no_models_found') }}</p>
-                    <p class="text-xs mt-1">{{ __('filament-translation-toolkit::dashboard.messages.check_model_namespace') }}</p>
+                    <p class="text-xs mt-1">{{ __('filament-translation-toolkit::dashboard.messages.add_translatable_trait') }}</p>
                 </div>
             @endif
         </x-filament::section>

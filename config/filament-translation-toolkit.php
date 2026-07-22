@@ -65,6 +65,20 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Use Resource Defaults
+    |--------------------------------------------------------------------------
+    |
+    | When enabled, the generator will try to find the Filament Resource class
+    | for each model and extract navigation defaults (label, group, icon, sort)
+    | from it, instead of generating generic values. This applies to both
+    | the dashboard buttons and artisan commands.
+    |
+    */
+
+    'use_resource_defaults' => env('TRANSLATION_USE_RESOURCE_DEFAULTS', true),
+
+    /*
+    |--------------------------------------------------------------------------
     | AI Translation Service
     |--------------------------------------------------------------------------
     |

@@ -2,6 +2,7 @@
 
 namespace Dyahunter35\FilamentTranslationToolkit\Services;
 
+use Dyahunter35\FilamentTranslationToolkit\Concerns\Translatable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Support\Facades\File;
@@ -22,12 +23,19 @@ class TranslationScanner
         $this->modelNamespace = config('filament-translation-toolkit.model_namespace', 'App\\Models');
     }
 
-    public function getModelTables(): array
+    /**
+     * Get all translatable models (models that use the Translatable trait).
+     */
+    public function getTranslatableModels(): array
     {
         $models = $this->discoverModels();
         $results = [];
 
         foreach ($models as $modelClass) {
+            if (!$this->usesTranslatableTrait($modelClass)) {
+                continue;
+            }
+
             try {
                 $instance = new $modelClass;
                 $tableName = $instance->getTable();
@@ -35,6 +43,8 @@ class TranslationScanner
                     'table' => $tableName,
                     'model' => class_basename($modelClass),
                     'class' => $modelClass,
+                    'translation_file' => $instance->getTranslationFileName(),
+                    'enabled' => $modelClass::isTranslatable(),
                 ];
             } catch (\Throwable $e) {
                 $modelName = class_basename($modelClass);
@@ -43,10 +53,18 @@ class TranslationScanner
                     'table' => $guessedTable,
                     'model' => $modelName,
                     'class' => $modelClass,
+                    'translation_file' => Str::snake($modelName),
+                    'enabled' => $modelClass::isTranslatable(),
                 ];
             }
         }
+
         return $results;
+    }
+
+    public function getModelTables(): array
+    {
+        return $this->getTranslatableModels();
     }
 
     public function getMissingTableTranslations(): array
@@ -55,17 +73,19 @@ class TranslationScanner
         $missing = [];
 
         foreach ($modelTables as $item) {
+            if (!$item['enabled']) {
+                continue;
+            }
+
             $table = $item['table'];
-            $singularName = Str::singular($table);
-            $pluralName = $table;
+            $translationFile = $item['translation_file'];
 
             $existsIn = [];
             $missingIn = [];
 
             foreach ($this->locales as $locale) {
                 $files = $this->getTranslationFiles($locale);
-                // التحقق من وجود الملف باسم المفرد أو الجمع
-                if (in_array($singularName, $files) || in_array($pluralName, $files)) {
+                if (in_array($translationFile, $files)) {
                     $existsIn[] = $locale;
                 } else {
                     $missingIn[] = $locale;
@@ -76,12 +96,13 @@ class TranslationScanner
                 $missing[] = [
                     'table' => $table,
                     'model' => $item['model'],
-                    'suggested_file' => $singularName,
+                    'suggested_file' => $translationFile,
                     'exists_in' => $existsIn,
                     'missing_in' => $missingIn,
                 ];
             }
         }
+
         return $missing;
     }
 
@@ -136,30 +157,39 @@ class TranslationScanner
         $results = [];
 
         foreach ($models as $modelClass) {
+            if (!$this->usesTranslatableTrait($modelClass)) {
+                continue;
+            }
+
             $modelName = class_basename($modelClass);
             $relationships = $this->extractRelationships($modelClass);
             $fileName = Str::of($modelName)->snake()->toString() . '_relation';
 
-            $hasTranslation = false;
-            $translationFile = null;
+            $existsIn = [];
+            $missingIn = [];
 
             foreach ($this->locales as $locale) {
                 $path = "{$this->langPath}/{$locale}/{$fileName}.php";
                 if (File::exists($path)) {
-                    $hasTranslation = true;
-                    $translationFile = "{$locale}/{$fileName}.php";
-                    break;
+                    $existsIn[] = $locale;
+                } else {
+                    $missingIn[] = $locale;
                 }
             }
+
+            $hasTranslation = count($existsIn) > 0;
 
             $results[] = [
                 'model' => $modelName,
                 'class' => $modelClass,
                 'relationships' => $relationships,
                 'has_translation' => $hasTranslation,
-                'translation_file' => $translationFile,
+                'exists_in' => $existsIn,
+                'missing_in' => $missingIn,
+                'translation_file' => $fileName,
             ];
         }
+
         return $results;
     }
 
@@ -181,8 +211,8 @@ class TranslationScanner
     public function getFileSummary(): array
     {
         $summary = [];
-        $models = $this->discoverModels();
-        $validFileNames = collect($models)->map(fn($m) => Str::snake(class_basename($m)))->toArray();
+        $translatableModels = $this->getTranslatableModels();
+        $validFileNames = collect($translatableModels)->map(fn($m) => $m['translation_file'])->toArray();
 
         $allFiles = [];
         foreach ($this->locales as $locale) {
@@ -200,6 +230,7 @@ class TranslationScanner
             }
             $summary[] = ['file' => $fileName, 'locales' => $locales];
         }
+
         return $summary;
     }
 
@@ -263,6 +294,120 @@ class TranslationScanner
             }
         }
         return $relationships;
+    }
+
+    /**
+     * Find the Filament Resource class for a given model and extract navigation defaults.
+     */
+    public function getResourceDefaults(string $modelClass): ?array
+    {
+        $modelName = class_basename($modelClass);
+        $resourceNamespace = config('filament-translation-toolkit.model_namespace', 'App\\Models');
+
+        // Try to find resource in common Filament paths
+        $possiblePaths = [
+            "App\\Filament\\Resources\\{$modelName}Resource",
+            "App\\Filament\\Resources",
+        ];
+
+        // Scan the Filament Resources directory
+        $resourcesPath = app_path('Filament/Resources');
+        if (!File::isDirectory($resourcesPath)) {
+            return null;
+        }
+
+        $resourceClass = null;
+        foreach (File::allFiles($resourcesPath) as $file) {
+            $className = 'App\\Filament\\Resources\\' . Str::replaceLast('.php', '', $file->getRelativePathname());
+            $className = str_replace(['/', '\\'], '\\', $className);
+
+            if (
+                class_exists($className)
+                && str_ends_with($className, 'Resource')
+                && !abstract_class_exists($className)
+            ) {
+                $reflection = new ReflectionClass($className);
+                $getModelMethod = $reflection->getMethod('getModel');
+
+                if ($getModelMethod) {
+                    try {
+                        $tempInstance = $reflection->newInstanceWithoutConstructor();
+                        $resourceModel = $getModelMethod->invoke($tempInstance);
+
+                        if ($resourceModel === $modelClass || class_basename($resourceModel) === $modelName) {
+                            $resourceClass = $className;
+                            break;
+                        }
+                    } catch (\Throwable $e) {
+                        continue;
+                    }
+                }
+            }
+        }
+
+        if (!$resourceClass) {
+            return null;
+        }
+
+        try {
+            $reflection = new ReflectionClass($resourceClass);
+            $instance = $reflection->newInstanceWithoutConstructor();
+
+            $navigationLabel = null;
+            $navigationGroup = null;
+            $navigationIcon = null;
+            $navigationSort = null;
+            $modelLabel = null;
+            $pluralModelLabel = null;
+
+            if ($reflection->hasMethod('getNavigationLabel')) {
+                $navigationLabel = $resourceClass::getNavigationLabel();
+            }
+            if ($reflection->hasMethod('getNavigationGroup')) {
+                $navigationGroup = $resourceClass::getNavigationGroup();
+            }
+            if ($reflection->hasMethod('getNavigationIcon')) {
+                $navigationIcon = $resourceClass::getNavigationIcon();
+            }
+            if ($reflection->hasMethod('getNavigationSort')) {
+                $navigationSort = $resourceClass::getNavigationSort();
+            }
+            if ($reflection->hasMethod('getModelLabel')) {
+                $modelLabel = $resourceClass::getModelLabel();
+            }
+            if ($reflection->hasMethod('getPluralModelLabel')) {
+                $pluralModelLabel = $resourceClass::getPluralModelLabel();
+            }
+
+            return [
+                'navigation' => [
+                    'label' => $pluralModelLabel ?? $navigationLabel ?? Str::title(str_replace('_', ' ', Str::plural(class_basename($modelClass)))),
+                    'group' => $navigationGroup ?? Str::title(str_replace('_', ' ', Str::plural(class_basename($modelClass)))),
+                    'model_label' => $modelLabel ?? Str::title(str_replace('_', ' ', class_basename($modelClass))),
+                    'plural_label' => $pluralModelLabel ?? Str::title(str_replace('_', ' ', Str::plural(class_basename($modelClass)))),
+                    'icon' => $navigationIcon ?? config('filament-translation-toolkit.default_icon', 'heroicon-m-building-office-2'),
+                    'sort' => $navigationSort,
+                ],
+                'resource_class' => $resourceClass,
+            ];
+        } catch (\Throwable $e) {
+            return null;
+        }
+    }
+
+    /**
+     * Check if a model class uses the Translatable trait.
+     */
+    protected function usesTranslatableTrait(string $modelClass): bool
+    {
+        if (!class_exists($modelClass)) {
+            return false;
+        }
+
+        $reflection = new ReflectionClass($modelClass);
+        $uses = array_keys($reflection->getTraits());
+
+        return in_array(Translatable::class, $uses, true);
     }
 
     protected function loadTranslationFile(string $locale, string $fileName): array

@@ -66,8 +66,11 @@ class TranslationDashboard extends Page
 
     public bool $isLoading = false;
 
+    public bool $useResourceDefaults = false;
+
     public function mount(): void
     {
+        $this->useResourceDefaults = config('filament-translation-toolkit.use_resource_defaults', true);
         $this->refreshData();
     }
 
@@ -82,55 +85,88 @@ class TranslationDashboard extends Page
         $this->fileSummary = $scanner->getFileSummary();
     }
 
-    public function generateTableTranslation(string $table): void
+    public function toggleResourceDefaults(): void
+    {
+        $this->useResourceDefaults = !$this->useResourceDefaults;
+    }
+
+    /**
+     * Generate translation for a specific language.
+     */
+    public function generateTableTranslation(string $table, string $lang, ?string $translationFile = null): void
     {
         $langPath = config('filament-translation-toolkit.lang_path') ?? base_path('lang');
-        $fileName = Str::of(Str::singular($table))->snake();
-        $locales = config('filament-translation-toolkit.locales', ['en', 'ar']);
+        $fileName = $translationFile ?? Str::of(Str::singular($table))->snake();
         $defaultIcon = config('filament-translation-toolkit.default_icon', 'heroicon-m-building-office-2');
 
         $className = Str::studly(Str::singular($table));
         $pluralName = Str::plural($className);
 
+        // Get resource defaults if enabled
+        $navigation = $this->getResourceDefaults($className, $table) ?? [
+            'label' => $pluralName,
+            'group' => $lang === 'ar' ? $pluralName : Str::title(str_replace('_', ' ', Str::plural($table))),
+            'model_label' => $className,
+            'plural_label' => $pluralName,
+            'icon' => $defaultIcon,
+        ];
+
+        $columns = \Illuminate\Support\Facades\Schema::getColumnListing($table);
+
+        $fieldsArray = [];
+        foreach ($columns as $column) {
+            $fieldsArray[$column] = [
+                'label' => $lang === 'ar' ? $column : Str::title(str_replace('_', ' ', $column)),
+                'placeholder' => '',
+            ];
+        }
+
+        $content = "<?php\nreturn [\n";
+        $content .= "    'navigation' => [\n";
+        $content .= "        'group' => '".addslashes($navigation['group'])."',\n";
+        $content .= "        'label' => '".addslashes($navigation['label'])."',\n";
+        $content .= "        'plural_label' => '".addslashes($navigation['plural_label'])."',\n";
+        $content .= "        'model_label' => '".addslashes($navigation['model_label'])."',\n";
+        $content .= "        'icon' => '".addslashes($navigation['icon'])."',\n";
+        $content .= "    ],\n";
+        $content .= "    'breadcrumbs' => [\n";
+        $content .= "        'index' => '".addslashes($navigation['plural_label'])."',\n";
+        $content .= "        'create' => 'Add ".addslashes($className)."',\n";
+        $content .= "        'edit' => 'Edit ".addslashes($className)."',\n";
+        $content .= "    ],\n";
+        $content .= "    'fields' => [\n";
+        foreach ($fieldsArray as $name => $field) {
+            $content .= "        '{$name}' => [\n";
+            $content .= "            'label' => '".addslashes($field['label'])."',\n";
+            $content .= "            'placeholder' => '".addslashes($field['placeholder'])."',\n";
+            $content .= "        ],\n";
+        }
+        $content .= "    ],\n";
+        $content .= "];\n";
+
+        $directory = "{$langPath}/{$lang}";
+        File::ensureDirectoryExists($directory, 0755, true);
+
+        $path = "{$directory}/{$fileName}.php";
+        File::put($path, $content);
+
+        $this->refreshData();
+
+        Notification::make()
+            ->title(__('filament-translation-toolkit::dashboard.notifications.generated_lang', ['lang' => $lang]))
+            ->success()
+            ->send();
+    }
+
+    /**
+     * Generate translation for ALL languages at once.
+     */
+    public function generateTableTranslationAll(string $table, ?string $translationFile = null): void
+    {
+        $locales = config('filament-translation-toolkit.locales', ['en', 'ar']);
+
         foreach ($locales as $lang) {
-            $columns = \Illuminate\Support\Facades\Schema::getColumnListing($table);
-
-            $fieldsArray = [];
-            foreach ($columns as $column) {
-                $fieldsArray[$column] = [
-                    'label' => $lang === 'ar' ? $column : Str::title(str_replace('_', ' ', $column)),
-                    'placeholder' => '',
-                ];
-            }
-
-            $content = "<?php\nreturn [\n";
-            $content .= "    'navigation' => [\n";
-            $content .= "        'group' => '".($lang === 'ar' ? $pluralName : Str::title(str_replace('_', ' ', Str::plural($table))))."',\n";
-            $content .= "        'label' => '{$pluralName}',\n";
-            $content .= "        'plural_label' => '{$pluralName}',\n";
-            $content .= "        'model_label' => '{$className}',\n";
-            $content .= "        'icon' => '{$defaultIcon}',\n";
-            $content .= "    ],\n";
-            $content .= "    'breadcrumbs' => [\n";
-            $content .= "        'index' => '{$pluralName}',\n";
-            $content .= "        'create' => 'Add {$className}',\n";
-            $content .= "        'edit' => 'Edit {$className}',\n";
-            $content .= "    ],\n";
-            $content .= "    'fields' => [\n";
-            foreach ($fieldsArray as $name => $field) {
-                $content .= "        '{$name}' => [\n";
-                $content .= "            'label' => '{$field['label']}',\n";
-                $content .= "            'placeholder' => '{$field['placeholder']}',\n";
-                $content .= "        ],\n";
-            }
-            $content .= "    ],\n";
-            $content .= "];\n";
-
-            $directory = "{$langPath}/{$lang}";
-            File::ensureDirectoryExists($directory, 0755, true);
-
-            $path = "{$directory}/{$fileName}.php";
-            File::put($path, $content);
+            $this->generateTableTranslation($table, $lang, $translationFile);
         }
 
         $this->refreshData();
@@ -141,12 +177,21 @@ class TranslationDashboard extends Page
             ->send();
     }
 
-    public function generateAiTableTranslation(string $table): void
+    /**
+     * AI generate for a specific language.
+     */
+    public function generateAiTableTranslation(string $table, ?string $lang = null): void
     {
-        $exitCode = Artisan::call('make:ai-translation', [
+        $params = [
             'table' => $table,
             '--type' => 'resource',
-        ]);
+        ];
+
+        if ($lang) {
+            $params['--lang'] = $lang;
+        }
+
+        $exitCode = Artisan::call('make:ai-translation', $params);
 
         $this->refreshData();
 
@@ -179,6 +224,92 @@ class TranslationDashboard extends Page
                 ->success()
                 ->send();
         }
+    }
+
+    /**
+     * Generate relation translation for a specific language.
+     */
+    public function generateRelationTranslation(string $model, string $lang): void
+    {
+        $tableName = Str::of(Str::snake(Str::plural($model)))->toString();
+        $langPath = config('filament-translation-toolkit.lang_path') ?? base_path('lang');
+        $fileName = Str::of($model)->snake()->toString() . '_relation';
+        $className = Str::studly($model);
+
+        $columns = \Illuminate\Support\Facades\Schema::getColumnListing($tableName);
+
+        $fieldsArray = [];
+        foreach ($columns as $column) {
+            $fieldsArray[$column] = [
+                'label' => $lang === 'ar' ? $column : Str::title(str_replace('_', ' ', $column)),
+                'placeholder' => '',
+            ];
+        }
+
+        $content = "<?php\nreturn [\n";
+        $content .= "    'label' => [\n";
+        $content .= "        'plural' => '".addslashes(Str::plural($className))."',\n";
+        $content .= "        'single' => '".addslashes($className)."',\n";
+        $content .= "    ],\n";
+        $content .= "    'fields' => [\n";
+        foreach ($fieldsArray as $name => $field) {
+            $content .= "        '{$name}' => [\n";
+            $content .= "            'label' => '".addslashes($field['label'])."',\n";
+            $content .= "            'placeholder' => '".addslashes($field['placeholder'])."',\n";
+            $content .= "        ],\n";
+        }
+        $content .= "    ],\n";
+        $content .= "];\n";
+
+        $directory = "{$langPath}/{$lang}";
+        File::ensureDirectoryExists($directory, 0755, true);
+
+        $path = "{$directory}/{$fileName}.php";
+        File::put($path, $content);
+
+        $this->refreshData();
+
+        Notification::make()
+            ->title(__('filament-translation-toolkit::dashboard.notifications.relation_generated_lang', ['lang' => $lang]))
+            ->success()
+            ->send();
+    }
+
+    /**
+     * Generate relation translation for all languages.
+     */
+    public function generateRelationTranslationAll(string $model): void
+    {
+        $locales = config('filament-translation-toolkit.locales', ['en', 'ar']);
+
+        foreach ($locales as $lang) {
+            $this->generateRelationTranslation($model, $lang);
+        }
+
+        $this->refreshData();
+
+        Notification::make()
+            ->title(__('filament-translation-toolkit::dashboard.notifications.relation_generated'))
+            ->success()
+            ->send();
+    }
+
+    /**
+     * Get resource defaults for a model class.
+     */
+    protected function getResourceDefaults(string $className, string $table): ?array
+    {
+        if (!$this->useResourceDefaults) {
+            return null;
+        }
+
+        $scanner = app(TranslationScanner::class);
+        $modelNamespace = config('filament-translation-toolkit.model_namespace', 'App\\Models');
+        $modelClass = $modelNamespace . '\\' . $className;
+
+        $defaults = $scanner->getResourceDefaults($modelClass);
+
+        return $defaults['navigation'] ?? null;
     }
 
     protected function getHeaderActions(): array

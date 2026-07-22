@@ -3,6 +3,7 @@
 namespace Dyahunter35\FilamentTranslationToolkit\Commands;
 
 use Dyahunter35\FilamentTranslationToolkit\Services\AiTranslationService;
+use Dyahunter35\FilamentTranslationToolkit\Services\TranslationScanner;
 use Dyahunter35\FilamentTranslationToolkit\Templates\BaseTranslationTemplate;
 use Illuminate\Console\Command;
 use Illuminate\Database\Eloquent\Relations\Relation;
@@ -14,7 +15,9 @@ class MakeTableTranslationAiCommand extends Command
 {
     protected $signature = 'make:ai-translation
                             {table : Table name}
-                            {--type=resource : The template type (e.g. resource, relation)}';
+                            {--type=resource : The template type (e.g. resource, relation)}
+                            {--lang= : Specific language to generate (defaults to all)}
+                            {--use-resource-defaults : Use navigation defaults from Filament Resource class}';
 
     protected $description = 'Generate an AI-powered translation file using templates and AI service';
 
@@ -22,7 +25,9 @@ class MakeTableTranslationAiCommand extends Command
     {
         $table = $this->argument('table');
         $type = $this->option('type');
-        $targetLangs = config('filament-translation-toolkit.locales', ['en', 'ar']);
+        $baseLang = $this->option('lang');
+        $targetLangs = $baseLang ? [$baseLang] : config('filament-translation-toolkit.locales', ['en', 'ar']);
+        $useResourceDefaults = $this->option('use-resource-defaults') || config('filament-translation-toolkit.use_resource_defaults', true);
 
         $templateClass = '\\Dyahunter35\\FilamentTranslationToolkit\\Templates\\'.Str::studly($type).'Template';
 
@@ -46,6 +51,16 @@ class MakeTableTranslationAiCommand extends Command
         $fileName = Str::of(Str::singular($table))->snake();
         $relationships = $this->extractRelationships($className);
 
+        // Get resource defaults if enabled
+        $resourceDefaults = null;
+        if ($useResourceDefaults && $type === 'resource') {
+            $scanner = app(TranslationScanner::class);
+            $modelNamespace = config('filament-translation-toolkit.model_namespace', 'App\\Models');
+            $modelClass = $modelNamespace . '\\' . $className;
+            $defaults = $scanner->getResourceDefaults($modelClass);
+            $resourceDefaults = $defaults['navigation'] ?? null;
+        }
+
         $this->info("Fetching AI translations for table: {$table} using [{$type}] template...");
 
         $schemaData = [
@@ -54,6 +69,10 @@ class MakeTableTranslationAiCommand extends Command
             'fields_to_translate' => array_unique(array_merge($columns, $relationships)),
             'template_type' => $type,
         ];
+
+        if ($resourceDefaults) {
+            $schemaData['resource_defaults'] = $resourceDefaults;
+        }
 
         try {
             $translations = $aiService->generateTranslation(
@@ -79,6 +98,14 @@ class MakeTableTranslationAiCommand extends Command
                 $this->warn("Missing AI translation for language: {$lang}. Skipping...");
 
                 continue;
+            }
+
+            // Merge resource defaults into the translation if available
+            if ($resourceDefaults && $type === 'resource') {
+                $langData['navigation'] = array_merge(
+                    $langData['navigation'] ?? [],
+                    $resourceDefaults
+                );
             }
 
             $content = "<?php\n\nreturn [\n";

@@ -54,8 +54,8 @@ return [
         'no_files_to_compare' => 'No translation files found to compare.',
         'no_relationships' => 'No relationships',
         'not_translated' => 'No translation file',
-        'no_models_found' => 'No Eloquent models found.',
-        'check_model_namespace' => 'Check that model_namespace in config matches your project structure.',
+        'no_models_found' => 'No translatable models found.',
+        'add_translatable_trait' => 'Add the Dyahunter35\FilamentTranslationToolkit\Concerns\Translatable trait to your Eloquent models to enable translation.',
         'no_translation_files' => 'No translation files found.',
         'processing' => 'Processing, please wait...',
     ],
@@ -64,7 +64,9 @@ return [
         'refresh' => 'Refresh',
         'generate' => 'Generate',
         'generate_ai' => 'AI Generate',
+        'generate_all' => 'All',
         'generate_relation' => 'Create Translation',
+        'use_resource_defaults' => 'Use Resource Defaults',
         'generate_confirm_title' => 'Generate Translation File',
         'generate_confirm_description' => 'This will create a basic translation file for :table. Continue?',
         'generate_ai_title' => 'AI Generate Translation',
@@ -77,8 +79,10 @@ return [
 
     'notifications' => [
         'generated' => 'Translation file generated successfully.',
+        'generated_lang' => 'Translation for :lang generated successfully.',
         'ai_generated' => 'AI translation file generated successfully.',
         'relation_generated' => 'Relation translation file created.',
+        'relation_generated_lang' => 'Relation translation for :lang created successfully.',
     ],
 
 ];
