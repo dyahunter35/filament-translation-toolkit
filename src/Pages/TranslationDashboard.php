@@ -8,6 +8,7 @@ use Filament\Actions\Action;
 use Filament\Forms\Components\Select;
 use Filament\Notifications\Notification;
 use Filament\Pages\Page;
+use Illuminate\Contracts\Support\Htmlable;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Str;
@@ -48,7 +49,7 @@ class TranslationDashboard extends Page
         return config('filament-translation-toolkit.navigation.sort', 999);
     }
 
-    public static function getTitle(): string
+    public function getTitle(): string|Htmlable
     {
         return config('filament-translation-toolkit.navigation.title')
             ?? __("filament-translation-toolkit::dashboard.navigation.title");
