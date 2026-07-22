@@ -2,7 +2,10 @@
 
 namespace Dyahunter35\FilamentTranslationToolkit\Services;
 
+use Dyahunter35\FilamentTranslationToolkit\Concerns\HasPage;
 use Dyahunter35\FilamentTranslationToolkit\Concerns\Translatable;
+use Filament\Livewire\Livewire;
+use Filament\Pages\Page;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Support\Facades\File;
@@ -193,6 +196,118 @@ class TranslationScanner
         return $results;
     }
 
+    /**
+     * Discover all Filament Pages across all panels.
+     */
+    public function discoverFilamentPages(): array
+    {
+        $results = [];
+        $pagesPath = app_path('Filament/Pages');
+
+        if (!File::isDirectory($pagesPath)) {
+            return $results;
+        }
+
+        foreach (File::allFiles($pagesPath) as $file) {
+            $className = 'App\\Filament\\Pages\\' . Str::replaceLast('.php', '', $file->getRelativePathname());
+            $className = str_replace(['/', '\\'], '\\', $className);
+
+            if (!class_exists($className)) {
+                continue;
+            }
+
+            $reflection = new ReflectionClass($className);
+
+            if ($reflection->isAbstract() || !$reflection->isSubclassOf(Page::class)) {
+                continue;
+            }
+
+            $pageName = class_basename($className);
+            $snakeName = Str::of($pageName)->snake()->toString();
+            $hasTrait = $this->usesHasPageTrait($className);
+
+            $existsIn = [];
+            $missingIn = [];
+
+            foreach ($this->locales as $locale) {
+                $path = "{$this->langPath}/{$locale}/{$snakeName}.php";
+                if (File::exists($path)) {
+                    $existsIn[] = $locale;
+                } else {
+                    $missingIn[] = $locale;
+                }
+            }
+
+            $results[] = [
+                'class' => $className,
+                'name' => $pageName,
+                'translation_file' => $snakeName,
+                'has_trait' => $hasTrait,
+                'exists_in' => $existsIn,
+                'missing_in' => $missingIn,
+                'file_path' => $file->getPathname(),
+            ];
+        }
+
+        usort($results, fn($a, $b) => strcmp($a['name'], $b['name']));
+
+        return $results;
+    }
+
+    /**
+     * Add the HasPage trait to a Filament Page class file.
+     */
+    public function addHasPageTrait(string $filePath): bool
+    {
+        if (!File::exists($filePath)) {
+            return false;
+        }
+
+        $content = File::get($filePath);
+
+        if (str_contains($content, 'use HasPage;') || str_contains($content, 'HasPage')) {
+            return false;
+        }
+
+        $traitUse = 'use Dyahunter35\\FilamentTranslationToolkit\\Concerns\\HasPage;';
+
+        if (preg_match('/^(class\s+\w+)/m', $content, $matches)) {
+            $classLine = $matches[1];
+            $content = str_replace($classLine, $traitUse . "\n\n    " . $classLine, $content);
+        } else {
+            return false;
+        }
+
+        if (str_contains($content, 'namespace ') && !str_contains($content, 'use ' . $traitUse)) {
+            $lastUse = strrpos($content, 'use ');
+            if ($lastUse !== false) {
+                $lineEnd = strpos($content, ';', $lastUse);
+                if ($lineEnd !== false) {
+                    $insertPos = $lineEnd + 1;
+                    $content = substr($content, 0, $insertPos) . "\n" . $traitUse . substr($content, $insertPos);
+                }
+            }
+        }
+
+        File::put($filePath, $content);
+        return true;
+    }
+
+    /**
+     * Check if a class uses the HasPage trait.
+     */
+    protected function usesHasPageTrait(string $className): bool
+    {
+        if (!class_exists($className)) {
+            return false;
+        }
+
+        $reflection = new ReflectionClass($className);
+        $uses = array_keys($reflection->getTraits());
+
+        return in_array(HasPage::class, $uses, true);
+    }
+
     public function getAiStatus(): array
     {
         $config = config('filament-translation-toolkit.ai', []);
@@ -368,6 +483,12 @@ class TranslationScanner
             }
             if ($reflection->hasMethod('getNavigationIcon')) {
                 $navigationIcon = $resourceClass::getNavigationIcon();
+
+                if ($navigationIcon instanceof \BackedEnum) {
+                    $navigationIcon = 'heroicon-' . $navigationIcon->value;
+                } elseif (is_object($navigationIcon)) {
+                    $navigationIcon = (string) $navigationIcon;
+                }
             }
             if ($reflection->hasMethod('getNavigationSort')) {
                 $navigationSort = $resourceClass::getNavigationSort();

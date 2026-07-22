@@ -24,7 +24,7 @@ class ResourceTemplate extends BaseTranslationTemplate
         $content .= "        'label' => '{$this->escape($langData['label'] ?? '')}',\n";
         $content .= "        'plural_label' => '{$this->escape($langData['plural_label'] ?? '')}',\n";
         $content .= "        'model_label' => '{$this->escape($langData['model_label'] ?? '')}',\n";
-        $content .= "        'icon' => 'heroicon-m-building-office-2',\n";
+        $content .= "        'icon' => '".addslashes((string) ($langData['icon'] ?? 'heroicon-m-building-office-2'))."',\n";
         $content .= "    ],\n";
         $content .= "    'breadcrumbs' => [\n";
         $content .= "        'index' => '{$this->escape($langData['breadcrumbs']['index'] ?? '')}',\n";

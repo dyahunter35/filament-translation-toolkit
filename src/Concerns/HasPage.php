@@ -10,11 +10,17 @@ trait HasPage
 
     public static function getLocalePath(): string
     {
-        if (isset(static::$resource::$localePath)) {
-            return static::$localePath;
+        if (property_exists(static::class, 'resource') && isset(static::$resource)) {
+            $resource = static::$resource;
+
+            if (property_exists($resource, 'localePath')) {
+                return $resource::$localePath;
+            }
+
+            return Str::of(class_basename($resource::getModel()))->snake();
         }
 
-        return 'locale/'.Str::of(class_basename(static::$resource::getModel()))->snake();
+        return Str::of(class_basename(static::class))->snake();
     }
 
     public static function getLocale($key): ?string

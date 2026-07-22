@@ -24,9 +24,6 @@ class AiTranslationService
 
     /**
      * Send data to AI for translation and formatting.
-     *
-     * @param  array<string, mixed>  $schemaData
-     * @return array<string, mixed>|null
      */
     public function generateTranslation(array $schemaData, string $templateType, string $jsonStructure): ?array
     {
@@ -62,11 +59,82 @@ class AiTranslationService
         if ($response->successful()) {
             $content = $response->json('choices.0.message.content');
 
-            // Clean markdown fences to ensure pure JSON extraction
             $content = preg_replace('/```json\s*/i', '', $content);
             $content = preg_replace('/```\s*/i', '', $content);
 
             return json_decode(trim($content), true);
+        }
+
+        throw new Exception('AI API Error: '.$response->body());
+    }
+
+    /**
+     * Translate an existing English translation array to target languages using AI.
+     *
+     * @param  array<string, mixed>  $englishData  The English translation array
+     * @param  string[]  $targetLangs  Languages to translate to (e.g. ['ar'])
+     * @return array<string, array<string, mixed>>  Keyed by locale
+     */
+    public function translateFromEnglish(array $englishData, array $targetLangs, string $tableName): array
+    {
+        if (empty($this->apiKey)) {
+            throw new Exception('OPENROUTER_API_KEY is not set. Publish the config and set your API key, or add it to .env.');
+        }
+
+        $langNames = array_map(fn ($l) => match ($l) {
+            'ar' => 'Arabic',
+            'fr' => 'French',
+            'es' => 'Spanish',
+            'de' => 'German',
+            'tr' => 'Turkish',
+            'ur' => 'Urdu',
+            default => strtoupper($l),
+        }, $targetLangs);
+
+        $langList = implode(' and ', $langNames);
+        $langCodes = implode(', ', $targetLangs);
+
+        $prompt = "You are an expert translator for Laravel & Filament PHP frameworks.
+        Translate the following English translation file into {$langList}.
+
+        Return ONLY a valid, raw JSON object. Do NOT wrap it in markdown blockquotes.
+        The JSON key must be the locale code (e.g. \"{$targetLangs[0]}\").
+        Each key in the JSON must match the exact English structure — same keys, same nesting, same array structure.
+        Only translate the string VALUES, never change the array keys.
+        For placeholders and empty strings, keep them empty.
+        For icon values (like 'heroicon-o-xxx'), keep them as-is — do NOT translate icons.
+
+        IMPORTANT: The output structure must be flat at the top level:
+        { "group": "...", "label": "...", "plural_label": "...", "model_label": "...", "icon": "...",
+          "breadcrumbs": { ... }, "fields": { ... }, "filters": { ... }, "actions": { ... } }
+
+        English source for table [{$tableName}]:
+        " . json_encode($englishData, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
+
+        $response = Http::withoutVerifying()
+            ->withToken($this->apiKey)
+            ->timeout($this->timeout)
+            ->post($this->endpoint, [
+                'model' => $this->model,
+                'messages' => [
+                    ['role' => 'system', 'content' => 'You output only raw JSON. Translate values precisely. Keep all keys and structure identical.'],
+                    ['role' => 'user', 'content' => $prompt],
+                ],
+            ]);
+
+        if ($response->successful()) {
+            $content = $response->json('choices.0.message.content');
+
+            $content = preg_replace('/```json\s*/i', '', $content);
+            $content = preg_replace('/```\s*/i', '', $content);
+
+            $decoded = json_decode(trim($content), true);
+
+            if ($decoded && isset($decoded[$targetLangs[0]])) {
+                return $decoded;
+            }
+
+            return [$targetLangs[0] => $decoded ?? []];
         }
 
         throw new Exception('AI API Error: '.$response->body());

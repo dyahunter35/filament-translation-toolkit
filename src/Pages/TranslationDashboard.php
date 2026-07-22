@@ -54,7 +54,11 @@ class TranslationDashboard extends Page
 
     public ?array $fileSummary = [];
 
+    public ?array $filamentPages = [];
+
     public bool $isLoading = false;
+
+    public bool $useAiMode = false;
 
     public bool $useResourceDefaults = false;
 
@@ -73,6 +77,7 @@ class TranslationDashboard extends Page
         $this->completeness = $scanner->getTranslationCompleteness();
         $this->relationships = $scanner->getModelRelationships();
         $this->fileSummary = $scanner->getFileSummary();
+        $this->filamentPages = $scanner->discoverFilamentPages();
     }
 
     public function toggleResourceDefaults(): void
@@ -117,7 +122,7 @@ class TranslationDashboard extends Page
         $content .= "        'label' => '" . addslashes($navigation['label']) . "',\n";
         $content .= "        'plural_label' => '" . addslashes($navigation['plural_label']) . "',\n";
         $content .= "        'model_label' => '" . addslashes($navigation['model_label']) . "',\n";
-        $content .= "        'icon' => '" . addslashes($navigation['icon']) . "',\n";
+        $content .= "        'icon' => '" . addslashes((string) $navigation['icon']) . "',\n";
         $content .= "    ],\n";
         $content .= "    'breadcrumbs' => [\n";
         $content .= "        'index' => '" . addslashes($navigation['plural_label']) . "',\n";
@@ -284,6 +289,163 @@ class TranslationDashboard extends Page
             ->title(__('filament-translation-toolkit::dashboard.notifications.relation_generated'))
             ->success()
             ->send();
+    }
+
+    /**
+     * Generate page translation for a specific language.
+     */
+    public function generatePageTranslation(string $pageClass, string $lang): void
+    {
+        $pageName = class_basename($pageClass);
+        $snakeName = Str::of($pageName)->snake()->toString();
+        $langPath = config('filament-translation-toolkit.lang_path') ?? base_path('lang');
+
+        $command = app(\Dyahunter35\FilamentTranslationToolkit\Commands\MakeTranslationCommand::class);
+        $pageData = $command->extractPageDefaults($pageClass);
+
+        $content = "<?php\n\nreturn [\n";
+        $content .= "    'title' => '" . addslashes($pageData['title']) . "',\n";
+        $content .= "    'heading' => '" . addslashes($pageData['heading']) . "',\n";
+        $content .= "    'navigation' => [\n";
+        $content .= "        'label' => '" . addslashes($pageData['navigation']['label']) . "',\n";
+        $content .= "        'group' => '" . addslashes($pageData['navigation']['group']) . "',\n";
+        if (!empty($pageData['navigation']['icon'])) {
+            $content .= "        'icon' => '" . addslashes((string) $pageData['navigation']['icon']) . "',\n";
+        }
+        if (isset($pageData['navigation']['sort'])) {
+            $content .= "        'sort' => " . intval($pageData['navigation']['sort']) . ",\n";
+        }
+        $content .= "    ],\n";
+        $content .= "    'breadcrumbs' => [\n";
+        $content .= "        'index' => '" . addslashes($pageData['breadcrumbs']['index']) . "',\n";
+        $content .= "    ],\n";
+        $content .= "    'actions' => [\n";
+        foreach ($pageData['actions'] as $key => $value) {
+            $content .= "        '" . addslashes($key) . "' => '" . addslashes($value) . "',\n";
+        }
+        $content .= "    ],\n";
+        $content .= "    'messages' => [\n";
+        foreach ($pageData['messages'] as $key => $value) {
+            $content .= "        '" . addslashes($key) . "' => '" . addslashes($value) . "',\n";
+        }
+        $content .= "    ],\n";
+        $content .= "];\n";
+
+        $directory = "{$langPath}/{$lang}";
+        File::ensureDirectoryExists($directory, 0755, true);
+
+        $path = "{$directory}/{$snakeName}.php";
+        File::put($path, $content);
+
+        $this->refreshData();
+
+        Notification::make()
+            ->title(__('filament-translation-toolkit::dashboard.notifications.page_generated_lang', ['lang' => $lang, 'page' => $pageName]))
+            ->success()
+            ->send();
+    }
+
+    /**
+     * Generate page translation for all languages.
+     */
+    public function generatePageTranslationAll(string $pageClass): void
+    {
+        $locales = config('filament-translation-toolkit.locales', ['en', 'ar']);
+
+        foreach ($locales as $lang) {
+            $this->generatePageTranslation($pageClass, $lang);
+        }
+
+        $this->refreshData();
+
+        Notification::make()
+            ->title(__('filament-translation-toolkit::dashboard.notifications.page_generated'))
+            ->success()
+            ->send();
+    }
+
+    /**
+     * Add HasPage trait to a page class.
+     */
+    public function addTraitToPage(string $pageClass): void
+    {
+        $scanner = app(TranslationScanner::class);
+        $reflection = new \ReflectionClass($pageClass);
+        $filePath = $reflection->getFileName();
+
+        if ($scanner->addHasPageTrait($filePath)) {
+            Notification::make()
+                ->title(__('filament-translation-toolkit::dashboard.notifications.trait_added', ['page' => class_basename($pageClass)]))
+                ->success()
+                ->send();
+        } else {
+            Notification::make()
+                ->title(__('filament-translation-toolkit::dashboard.notifications.trait_exists'))
+                ->warning()
+                ->send();
+        }
+
+        $this->refreshData();
+    }
+
+    /**
+     * AI translate a page to all non-English locales.
+     */
+    public function aiTranslatePage(string $pageClass): void
+    {
+        $langPath = config('filament-translation-toolkit.lang_path') ?? base_path('lang');
+        $pageName = class_basename($pageClass);
+        $snakeName = Str::of($pageName)->snake()->toString();
+
+        // Ensure English file exists first
+        $englishPath = "{$langPath}/en/{$snakeName}.php";
+        if (!File::exists($englishPath)) {
+            $this->generatePageTranslation($pageClass, 'en');
+        }
+
+        $englishData = require $englishPath;
+        $locales = config('filament-translation-toolkit.locales', ['en', 'ar']);
+        $nonEnglishLangs = array_values(array_filter($locales, fn ($l) => $l !== 'en'));
+
+        if (empty($nonEnglishLangs)) {
+            return;
+        }
+
+        /** @var AiTranslationService $aiService */
+        $aiService = app(AiTranslationService::class);
+
+        try {
+            $translations = $aiService->translateFromEnglish($englishData, $nonEnglishLangs, $snakeName);
+
+            foreach ($nonEnglishLangs as $lang) {
+                $langData = $translations[$lang] ?? null;
+                if (!$langData) {
+                    continue;
+                }
+
+                $template = new \Dyahunter35\FilamentTranslationToolkit\Templates\PageTranslationTemplate();
+
+                $content = "<?php\n\nreturn [\n";
+                $content .= $template->build($langData);
+                $content .= "];\n";
+
+                $directory = "{$langPath}/{$lang}";
+                File::ensureDirectoryExists($directory, 0755, true);
+                File::put("{$directory}/{$snakeName}.php", $content);
+            }
+
+            $this->refreshData();
+
+            Notification::make()
+                ->title(__('filament-translation-toolkit::dashboard.notifications.page_generated'))
+                ->success()
+                ->send();
+        } catch (\Exception $e) {
+            Notification::make()
+                ->title($e->getMessage())
+                ->danger()
+                ->send();
+        }
     }
 
     /**

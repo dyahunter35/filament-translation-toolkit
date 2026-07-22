@@ -13,6 +13,7 @@ return [
         'missing_tables' => 'Missing Translation Files',
         'completeness' => 'Translation Completeness',
         'relationships' => 'Model Relationships',
+        'filament_pages' => 'Filament Pages',
         'file_summary' => 'All Translation Files',
     ],
 
@@ -40,13 +41,19 @@ return [
         'translation_status' => 'Translation Status',
         'file' => 'Translation File',
         'keys' => ' Keys',
+        'page' => 'Page',
+        'class' => 'Class',
+        'has_trait' => 'HasPage Trait',
     ],
 
     'badges' => [
         'all_covered' => 'All Covered',
         'all_translated' => 'All Translated',
+        'all_ready' => 'All Ready',
         'untranslated' => 'Untranslated',
         'missing' => 'Missing',
+        'no_trait' => 'No Trait',
+        'no_translation' => 'No Translation',
     ],
 
     'messages' => [
@@ -55,6 +62,8 @@ return [
         'no_relationships' => 'No relationships',
         'not_translated' => 'No translation file',
         'no_models_found' => 'No translatable models found.',
+        'no_pages_found' => 'No Filament pages found.',
+        'create_pages_path' => 'Create pages in app/Filament/Pages to see them here.',
         'add_translatable_trait' => 'Add the Dyahunter35\FilamentTranslationToolkit\Concerns\Translatable trait to your Eloquent models to enable translation.',
         'no_translation_files' => 'No translation files found.',
         'processing' => 'Processing, please wait...',
@@ -66,6 +75,7 @@ return [
         'generate_ai' => 'AI Generate',
         'generate_all' => 'All',
         'generate_relation' => 'Create Translation',
+        'add_trait' => 'Add Trait',
         'use_resource_defaults' => 'Use Resource Defaults',
         'generate_confirm_title' => 'Generate Translation File',
         'generate_confirm_description' => 'This will create a basic translation file for :table. Continue?',
@@ -83,6 +93,10 @@ return [
         'ai_generated' => 'AI translation file generated successfully.',
         'relation_generated' => 'Relation translation file created.',
         'relation_generated_lang' => 'Relation translation for :lang created successfully.',
+        'page_generated' => 'Page translation file generated.',
+        'page_generated_lang' => 'Page :page translation for :lang created successfully.',
+        'trait_added' => 'HasPage trait added to :page.',
+        'trait_exists' => 'HasPage trait already exists in this page.',
     ],
 
 ];
